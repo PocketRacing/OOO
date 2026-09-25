@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Президент — Симулятор государства</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#080b10;
+ color:#f4f6f8;
+}
+button,input,select,textarea{font:inherit}
+button{
+ border:0;
+ border-radius:10px;
+ padding:10px 13px;
+ cursor:pointer;
+ background:#263142;
+ color:white;
+ transition:.15s;
+}
+button:hover{filter:brightness(1.18)}
+button.good{background:#176b45}
+button.bad{background:#8d2933}
+button.gold{background:#8a681d}
+button.blue{background:#23588f}
+button.dark{background:#151c27}
+input,select,textarea{
+ width:100%;
+ background:#111722;
+ color:white;
+ border:1px solid #303b4d;
+ border-radius:9px;
+ padding:10px;
+ outline:none;
+}
+textarea{min-height:90px;resize:vertical}
+
+.layout{
+ display:flex;
+ min-height:100vh;
+}
+.sidebar{
+ width:240px;
+ background:#0d121a;
+ border-right:1px solid #202938;
+ padding:15px;
+ position:fixed;
+ top:0;bottom:0;left:0;
+ overflow:auto;
+ z-index:20;
+}
+.logo{
+ font-size:22px;
+ font-weight:bold;
+ margin-bottom:15px;
+}
+.nav button{
+ display:block;
+ width:100%;
+ text-align:left;
+ margin:5px 0;
+ background:#121a25;
+}
+.nav button.active{
+ background:#31557d;
+}
+.main{
+ margin-left:240px;
+ width:calc(100% - 240px);
+ padding:20px;
+ max-width:1500px;
+}
+.mobileTop{
+ display:none;
+ position:sticky;
+ top:0;
+ z-index:30;
+ background:#0d121a;
+ padding:10px;
+ border-bottom:1px solid #222d3d;
+}
+h1,h2,h3{margin-top:0}
+.page{display:none}
+.page.active{display:block}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:12px;
+}
+.grid2{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:12px;
+}
+.card{
+ background:#101722;
+ border:1px solid #202b3b;
+ border-radius:14px;
+ padding:15px;
+}
+.stat{
+ font-size:25px;
+ font-weight:bold;
+ margin-top:7px;
+}
+.muted{color:#94a2b6;font-size:13px}
+.money{color:#75d49e}
+.red{color:#ff747e}
+.yellow{color:#e9c76c}
+.blueText{color:#72b7ff}
+
+.bar{
+ height:9px;
+ background:#202936;
+ border-radius:20px;
+ overflow:hidden;
+ margin-top:8px;
+}
+.bar span{
+ display:block;
+ height:100%;
+ background:#4e9dca;
+}
+
+.actions{
+ display:flex;
+ flex-wrap:wrap;
+ gap:7px;
+ margin-top:10px;
+}
+.list{
+ display:flex;
+ flex-direction:column;
+ gap:9px;
+}
+.item{
+ background:#0c121b;
+ border:1px solid #202b39;
+ border-radius:11px;
+ padding:11px;
+}
+.row{
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ align-items:center;
+}
+.tag{
+ display:inline-block;
+ padding:4px 7px;
+ border-radius:7px;
+ background:#202b39;
+ font-size:12px;
+ margin:2px;
+}
+.product{
+ min-height:190px;
+ display:flex;
+ flex-direction:column;
+ justify-content:space-between;
+}
+.price{
+ font-size:19px;
+ font-weight:bold;
+ margin:8px 0;
+}
+table{
+ width:100%;
+ border-collapse:collapse;
+}
+td,th{
+ padding:9px;
+ border-bottom:1px solid #263141;
+ text-align:left;
+}
+.modal{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:#0009;
+ z-index:100;
+ align-items:center;
+ justify-content:center;
+ padding:15px;
+}
+.modal.open{display:flex}
+.modalBox{
+ width:min(650px,100%);
+ max-height:90vh;
+ overflow:auto;
+ background:#101722;
+ border:1px solid #344258;
+ border-radius:16px;
+ padding:18px;
+}
+.notice{
+ position:fixed;
+ right:15px;
+ bottom:15px;
+ width:min(380px,calc(100% - 30px));
+ background:#141d2a;
+ border:1px solid #40516b;
+ padding:14px;
+ border-radius:13px;
+ z-index:200;
+ box-shadow:0 10px 40px #0008;
+ display:none;
+}
+.notice.show{display:block}
+.smallBtn{padding:7px 9px;font-size:13px}
+
+@media(max-width:900px){
+ .sidebar{
+  display:none;
+ }
+ .main{
+  margin-left:0;
+  width:100%;
+  padding:12px;
+ }
+ .mobileTop{display:flex;justify-content:space-between;align-items:center}
+ .grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+ .grid,.grid2{grid-template-columns:1fr}
+ .card{padding:12px}
+ .row{align-items:flex-start}
+ h1{font-size:24px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="mobileTop">
+ <b>🏛️ Президент</b>
+ <button onclick="toggleMenu()">☰ Меню</button>
+</div>
+
+<aside class="sidebar" id="sidebar">
+ <div class="logo">🏛️ Президент</div>
+
+ <div class="nav">
+  <button onclick="page('home')">🏠 Главная</button>
+  <button onclick="page('state')">🏛️ Государство</button>
+  <button onclick="page('family')">❤️ Семья</button>
+  <button onclick="page('npc')">👥 NPC</button>
+  <button onclick="page('business')">🏢 Бизнес</button>
+  <button onclick="page('assets')">💼 Мои активы</button>
+  <button onclick="page('shops')">🛍️ Магазины</button>
+  <button onclick="page('casino')">🎰 Казино</button>
+  <button onclick="page('autosalon')">🚗 Автосалоны</button>
+  <button onclick="page('cars')">🚘 Мои машины</button>
+  <button onclick="page('money')">💰 Личные деньги</button>
+  <button onclick="page('market')">📈 Рынок</button>
+  <button onclick="page('world')">🌍 Мир</button>
+  <button onclick="page('conflict')">⚔️ Конфликт</button>
+  <button onclick="page('fleet')">🛳️ Флот</button>
+  <button onclick="page('laptop')">💻 Ноутбук</button>
+  <button onclick="page('news')">📰 Новости</button>
+  <button onclick="page('observer')">👁️ Наблюдатель</button>
+  <button onclick="page('actions')">⚙️ Свои действия</button>
+  <button onclick="page('settings')">⚙️ Настройки</button>
+ </div>
+
+ <div class="card" style="margin-top:15px">
+  <div class="muted">Игровой день</div>
+  <div class="stat" id="sideDay">1</div>
+ </div>
+</aside>
+
+<main class="main">
+
+<!-- HOME -->
+<section class="page active" id="home">
+<h1>🏛️ Президент Томас</h1>
+<p class="muted">Ты управляешь государством, но при этом можешь заниматься личной жизнью, бизнесом и собственными активами.</p>
+
+<div class="grid">
+ <div class="card">
+  <div class="muted">Бюджет государства</div>
+  <div class="stat money" id="stateMoney">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">Личные деньги</div>
+  <div class="stat yellow" id="personalMoney">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">Население</div>
+  <div class="stat" id="population">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">День</div>
+  <div class="stat" id="day">1</div>
+ </div>
+</div>
+
+<div class="grid" style="margin-top:12px">
+ <div class="card">
+  <b>📊 Экономика</b>
+  <div class="stat" id="economy">0</div>
+  <div class="bar"><span id="economyBar"></span></div>
+ </div>
+ <div class="card">
+  <b>❤️ Доверие</b>
+  <div class="stat" id="trust">0</div>
+  <div class="bar"><span id="trustBar"></span></div>
+ </div>
+ <div class="card">
+  <b>🛡️ Стабильность</b>
+  <div class="stat" id="stability">0</div>
+  <div class="bar"><span id="stabilityBar"></span></div>
+ </div>
+ <div class="card">
+  <b>💼 Активов</b>
+  <div class="stat" id="assetCount">0</div>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>⚡ Быстрые действия</h3>
+ <div class="actions">
+  <button class="blue" onclick="stateAction('economy',3)">📈 Поддержать экономику</button>
+  <button onclick="stateAction('trust',3)">🤝 Обратиться к гражданам</button>
+  <button onclick="stateAction('stability',3)">🛡️ Усилить стабильность</button>
+  <button class="gold" onclick="nextDay()">🌅 Наступить следующему дню</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>📰 Последнее событие</h3>
+ <div id="homeEvent">Мир начинает новый день.</div>
+</div>
+</section>
+
+<!-- STATE -->
+<section class="page" id="state">
+<h1>🏛️ Государство</h1>
+
+<div class="grid">
+ <div class="card">
+  <b>Экономика</b>
+  <div class="stat" id="stateEco">0</div>
+  <div class="actions">
+   <button onclick="stateAction('economy',2)">Инвестиции</button>
+   <button onclick="stateAction('economy',-2)">Сократить расходы</button>
+  </div>
+ </div>
+ <div class="card">
+  <b>Доверие</b>
+  <div class="stat" id="stateTrust">0</div>
+  <div class="actions">
+   <button onclick="stateAction('trust',3)">Обращение</button>
+   <button onclick="stateAction('trust',-3)">Непопулярное решение</button>
+  </div>
+ </div>
+ <div class="card">
+  <b>Стабильность</b>
+  <div class="stat" id="stateStability">0</div>
+  <div class="actions">
+   <button onclick="stateAction('stability',3)">Стабилизация</button>
+  </div>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>📜 Новый указ</h3>
+ <textarea id="decree" placeholder="Напиши любой свой указ..."></textarea>
+ <button class="good" onclick="decree()">Подписать указ</button>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>🏢 Правительство</h3>
+ <div id="cabinet"></div>
+</div>
+</section>
+
+<!-- FAMILY -->
+<section class="page" id="family">
+<h1>❤️ Семья</h1>
+<div class="grid2">
+ <div class="card">
+  <h3>Елена</h3>
+  <p>Твоя жена</p>
+  <div>Настроение: <b id="wifeMood">0</b></div>
+  <div>Отношения: <b id="wifeLove">0</b></div>
+  <div class="actions">
+   <button onclick="familyAction('hug')">🤗 Обнять</button>
+   <button onclick="familyAction('kiss')">❤️ Поцеловать</button>
+   <button onclick="familyAction('walk')">🚶 Прогулка</button>
+   <button onclick="familyAction('dinner')">🍽️ Ужин</button>
+   <button onclick="familyAction('gift')">🎁 Подарок</button>
+  </div>
+ </div>
+
+ <div class="card">
+  <h3>Максим</h3>
+  <p>Твой сын</p>
+  <div>Настроение: <b id="sonMood">0</b></div>
+  <div class="actions">
+   <button onclick="sonAction('play')">🎮 Поиграть</button>
+   <button onclick="sonAction('walk')">🚶 Погулять</button>
+   <button onclick="sonAction('gift')">🎁 Подарить подарок</button>
+  </div>
+ </div>
+</div>
+</section>
+
+<!-- NPC -->
+<section class="page" id="npc">
+<h1>👥 NPC</h1>
+
+<div class="card">
+ <h3>Создать персонажа</h3>
+ <div class="grid2">
+  <input id="npcName" placeholder="Имя">
+  <input id="npcJob" placeholder="Работа">
+ </div>
+ <div class="actions">
+  <button onclick="createNPC()">Создать NPC</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>Жители мира</h3>
+ <div id="npcList" class="list"></div>
+</div>
+</section>
+
+<!-- BUSINESS -->
+<section class="page" id="business">
+<h1>🏢 Бизнес</h1>
+
+<div class="card">
+ <h3>Создать бизнес</h3>
+ <div class="grid2">
+  <input id="bizName" placeholder="Название бизнеса">
+  <select id="bizType">
+   <option>Магазин</option>
+   <option>Ресторан</option>
+   <option>IT-компания</option>
+   <option>Завод</option>
+   <option>Логистика</option>
+   <option>Отель</option>
+   <option>Автосалон</option>
+   <option>Казино</option>
+   <option>Медиа</option>
+   <option>Строительство</option>
+   <option>Развлечения</option>
+  </select>
+ </div>
+ <div class="actions">
+  <button class="good" onclick="createBusiness()">💼 Открыть бизнес</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>Мои предприятия</h3>
+ <div id="businessList" class="list"></div>
+</div>
+</section>
+
+<!-- ASSETS -->
+<section class="page" id="assets">
+<h1>💼 Мои активы</h1>
+
+<div class="grid">
+ <div class="card">
+  <div class="muted">Стоимость активов</div>
+  <div class="stat money" id="assetsValue">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">Доход в день</div>
+  <div class="stat money" id="assetsIncome">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">Компаний</div>
+  <div class="stat" id="companyCount">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">Объектов</div>
+  <div class="stat" id="assetObjects">0</div>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>📋 Все мои активы</h3>
+ <div id="assetList" class="list"></div>
+</div>
+</section>
+
+<!-- SHOPS -->
+<section class="page" id="shops">
+<h1>🛍️ Магазины</h1>
+
+<div class="actions">
+ <button onclick="shopCategory('all')">Все</button>
+ <button onclick="shopCategory('ozon')">Ozon</button>
+ <button onclick="shopCategory('wb')">WB</button>
+ <button onclick="shopCategory('tech')">Техника</button>
+ <button onclick="shopCategory('clothes')">Одежда</button>
+ <button onclick="shopCategory('food')">Продукты</button>
+ <button onclick="shopCategory('home')">Дом</button>
+ <button onclick="shopCategory('auto')">Авто</button>
+ <button onclick="shopCategory('gift')">Подарки</button>
+ <button onclick="shopCategory('adult')">🔞 18+</button>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3 id="shopTitle">Каталог</h3>
+ <div id="shopGrid" class="grid"></div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>📦 Мои заказы</h3>
+ <div id="orders"></div>
+</div>
+</section>
+
+<!-- CASINO -->
+<section class="page" id="casino">
+<h1>🎰 Казино</h1>
+
+<div class="card">
+ <h3>Мои казино</h3>
+ <div id="myCasino"></div>
+ <div class="actions">
+  <button class="gold" onclick="buyCasino()">🎰 Купить казино</button>
+  <button onclick="upgradeCasino()">⬆️ Улучшить казино</button>
+ </div>
+</div>
+
+<div class="grid2" style="margin-top:12px">
+ <div class="card">
+  <h3>🎰 Слоты</h3>
+  <p class="muted">Используется только игровая валюта.</p>
+  <input id="slotBet" type="number" value="1000" min="1">
+  <button class="gold" onclick="slots()">Крутить</button>
+  <div id="slotResult"></div>
+ </div>
+
+ <div class="card">
+  <h3>🎲 Кубик</h3>
+  <input id="diceBet" type="number" value="1000" min="1">
+  <button onclick="dice()">Бросить</button>
+  <div id="diceResult"></div>
+ </div>
+</div>
+</section>
+
+<!-- AUTOSALON -->
+<section class="page" id="autosalon">
+<h1>🚗 Автосалоны</h1>
+
+<div class="card">
+ <h3>Мои автосалоны</h3>
+ <div id="salonList"></div>
+ <div class="actions">
+  <button class="good" onclick="buySalon()">🚗 Купить автосалон</button>
+  <button onclick="upgradeSalon()">⬆️ Улучшить автосалон</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>Продажи</h3>
+ <div id="salonSales"></div>
+</div>
+</section>
+
+<!-- CARS -->
+<section class="page" id="cars">
+<h1>🚘 Мои машины</h1>
+
+<div class="grid">
+ <div class="card product">
+  <h3>🚙 Городской автомобиль</h3>
+  <div class="price">2 500 000 ₽</div>
+  <button onclick="buyCar('Городской автомобиль',2500000)">Купить</button>
+ </div>
+ <div class="card product">
+  <h3>🚘 Бизнес-седан</h3>
+  <div class="price">5 800 000 ₽</div>
+  <button onclick="buyCar('Бизнес-седан',5800000)">Купить</button>
+ </div>
+ <div class="card product">
+  <h3>🚙 Премиум SUV</h3>
+  <div class="price">9 500 000 ₽</div>
+  <button onclick="buyCar('Премиум SUV',9500000)">Купить</button>
+ </div>
+ <div class="card product">
+  <h3>🏎️ Спорткар</h3>
+  <div class="price">15 000 000 ₽</div>
+  <button onclick="buyCar('Спорткар',15000000)">Купить</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>Мой гараж</h3>
+ <div id="garage" class="list"></div>
+</div>
+</section>
+
+<!-- MONEY -->
+<section class="page" id="money">
+<h1>💰 Личные деньги</h1>
+
+<div class="grid">
+ <div class="card">
+  <div class="muted">Баланс</div>
+  <div class="stat money" id="moneyPage">0</div>
+ </div>
+ <div class="card">
+  <div class="muted">Доход активов</div>
+  <div class="stat money" id="incomePage">0</div>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>🏠 Крупные покупки</h3>
+ <div class="actions">
+  <button onclick="buyPersonal('Квартира',12000000)">🏠 Квартира — 12 млн</button>
+  <button onclick="buyPersonal('Загородный дом',25000000)">🏡 Дом — 25 млн</button>
+  <button onclick="buyPersonal('Яхта',80000000)">🛥️ Яхта — 80 млн</button>
+  <button onclick="buyPersonal('Самолёт',350000000)">✈️ Самолёт — 350 млн</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>🧾 История покупок</h3>
+ <div id="purchaseHistory"></div>
+</div>
+</section>
+
+<!-- MARKET -->
+<section class="page" id="market">
+<h1>📈 Рынок</h1>
+<div class="card">
+ <div id="marketList"></div>
+</div>
+</section>
+
+<!-- WORLD -->
+<section class="page" id="world">
+<h1>🌍 Мир</h1>
+<div id="countries" class="grid2"></div>
+</section>
+
+<!-- CONFLICT -->
+<section class="page" id="conflict">
+<h1>⚔️ Конфликт</h1>
+<p class="muted">Абстрактная игровая система между вымышленными государствами.</p>
+<div class="card">
+ <select id="conflictCountry">
+  <option>Северия</option>
+  <option>Альтания</option>
+  <option>Вестмар</option>
+  <option>Лигория</option>
+ </select>
+ <div class="actions">
+  <button class="bad" onclick="conflictAction('attack')">Атаковать</button>
+  <button onclick="conflictAction('defend')">Оборона</button>
+  <button onclick="conflictAction('truce')">Перемирие</button>
+  <button class="good" onclick="conflictAction('peace')">Мир</button>
+ </div>
+ <div id="conflictLog"></div>
+</div>
+</section>
+
+<!-- FLEET -->
+<section class="page" id="fleet">
+<h1>🛳️ Флот</h1>
+<div class="grid">
+ <div class="card product">
+  <h3>🚢 Пассажирское судно</h3>
+  <div class="price">1 500 000 000 ₽</div>
+  <button onclick="buyShip('Пассажирское судно',1500000000)">Купить</button>
+ </div>
+ <div class="card product">
+  <h3>🚢 Грузовое судно</h3>
+  <div class="price">2 200 000 000 ₽</div>
+  <button onclick="buyShip('Грузовое судно',2200000000)">Купить</button>
+ </div>
+</div>
+<div class="card" style="margin-top:12px">
+ <h3>Мои суда</h3>
+ <div id="ships"></div>
+</div>
+</section>
+
+<!-- LAPTOP -->
+<section class="page" id="laptop">
+<h1>💻 Ноутбук</h1>
+<div class="grid">
+ <div class="card">
+  <h3>📨 Почта</h3>
+  <button onclick="laptopMessage()">Открыть</button>
+ </div>
+ <div class="card">
+  <h3>📰 Новости</h3>
+  <button onclick="page('news')">Читать</button>
+ </div>
+ <div class="card">
+  <h3>🏦 Банк</h3>
+  <button onclick="page('money')">Открыть</button>
+ </div>
+ <div class="card">
+  <h3>🛍️ Интернет-магазины</h3>
+  <button onclick="page('shops')">Открыть</button>
+ </div>
+</div>
+<div class="card" style="margin-top:12px">
+ <h3>📨 Сообщения</h3>
+ <div id="messages"></div>
+</div>
+</section>
+
+<!-- NEWS -->
+<section class="page" id="news">
+<h1>📰 Новости</h1>
+<div id="newsList" class="list"></div>
+</section>
+
+<!-- OBSERVER -->
+<section class="page" id="observer">
+<h1>👁️ Наблюдатель</h1>
+<p class="muted">Здесь можно смотреть, что происходит в мире без прямого управления персонажем.</p>
+
+<div class="grid">
+ <div class="card">
+  <h3>👥 NPC</h3>
+  <div class="stat" id="observerNPC">0</div>
+ </div>
+ <div class="card">
+  <h3>🏢 Бизнес</h3>
+  <div class="stat" id="observerBiz">0</div>
+ </div>
+ <div class="card">
+  <h3>📦 Заказы</h3>
+  <div class="stat" id="observerOrders">0</div>
+ </div>
+ <div class="card">
+  <h3>🚗 Машины</h3>
+  <div class="stat" id="observerCars">0</div>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>🔎 Что происходит сейчас</h3>
+ <div id="observerFeed" class="list"></div>
+</div>
+</section>
+
+<!-- ACTIONS -->
+<section class="page" id="actions">
+<h1>⚙️ Свои действия</h1>
+
+<div class="card">
+ <div class="grid2">
+  <input id="actionName" placeholder="Название действия">
+  <input id="actionCost" type="number" value="0" placeholder="Стоимость">
+ </div>
+ <textarea id="actionDescription" placeholder="Что происходит?"></textarea>
+ <div class="grid">
+  <input id="actionTrust" type="number" value="0" placeholder="Доверие">
+  <input id="actionEco" type="number" value="0" placeholder="Экономика">
+  <input id="actionLove" type="number" value="0" placeholder="Семья">
+  <input id="actionPersonal" type="number" value="0" placeholder="Личные деньги">
+ </div>
+ <div class="actions">
+  <button class="good" onclick="createAction()">Создать действие</button>
+ </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+ <h3>Мои действия</h3>
+ <div id="customActions" class="list"></div>
+</div>
+</section>
+
+<!-- SETTINGS -->
+<section class="page" id="settings">
+<h1>⚙️ Настройки</h1>
+<div class="card">
+ <button class="bad" onclick="resetGame()">🗑️ Начать новую игру</button>
+</div>
+</section>
+
+</main>
+
+<div class="notice" id="notice">
+ <b id="noticeTitle">Уведомление</b>
+ <div id="noticeText" style="margin-top:5px"></div>
+</div>
+
+<div class="modal" id="modal">
+ <div class="modalBox">
+  <div class="row">
+   <h2 id="modalTitle">Информация</h2>
+   <button onclick="closeModal()">✕</button>
+  </div>
+  <div id="modalContent"></div>
+ </div>
+</div>
+
+<script>
+const KEY="presidentGameUltimate";
+
+const defaultState={
+ day:1,
+ stateMoney:18400000000000,
+ personalMoney:120000000,
+ population:146000000,
+ economy:72,
+ trust:62,
+ stability:70,
+
+ wife:{love:70,mood:70},
+ son:{mood:75},
+
+ npcs:[
+  {name:"Алексей",job:"Предприниматель",money:1200000,mood:70,friend:20},
+  {name:"Марина",job:"Врач",money:350000,mood:82,friend:30},
+  {name:"Игорь",job:"Водитель",money:210000,mood:61,friend:15},
+  {name:"Сергей",job:"Инженер",money:600000,mood:75,friend:25}
+ ],
+
+ businesses:[],
+ assets:[],
+ casinos:[],
+ salons:[],
+ cars:[],
+ ships:[],
+ orders:[],
+ purchases:[],
+ news:[],
+ messages:[],
+ customActions:[],
+
+ countries:[
+  {name:"Северия",population:38,economy:78,relation:50},
+  {name:"Альтания",population:52,economy:83,relation:40},
+  {name:"Вестмар",population:71,economy:91,relation:65},
+  {name:"Лигория",population:29,economy:67,relation:55}
+ ],
+
+ market:[
+  {name:"Смартфон",cat:"tech",brand:"Nova",price:80000,quality:84,demand:80},
+  {name:"Ноутбук",cat:"tech",brand:"Orion",price:140000,quality:88,demand:74},
+  {name:"Куртка",cat:"clothes",brand:"North",price:18000,quality:80,demand:72},
+  {name:"Кроссовки",cat:"clothes",brand:"Step",price:12000,quality:76,demand:79},
+  {name:"Продуктовый набор",cat:"food",brand:"Дом",price:4500,quality:82,demand:91},
+  {name:"Диван",cat:"home",brand:"Comfort",price:65000,quality:85,demand:62},
+  {name:"Автомобильные шины",cat:"auto",brand:"Road",price:50000,quality:81,demand:69},
+  {name:"Подарочный набор",cat:"gift",brand:"Premium",price:15000,quality:89,demand:55},
+  {name:"Интимные товары",cat:"adult",brand:"Private",price:9000,quality:86,demand:48},
+  {name:"Лубрикант",cat:"adult",brand:"Private",price:2500,quality:88,demand:52},
+  {name:"Взрослое бельё",cat:"adult",brand:"Private",price:7000,quality:83,demand:45}
+ ],
+
+ conflictLog:[],
+ event:"Мир начинает новый день."
+};
+
+let G=load();
+
+function load(){
+ try{
+  const x=JSON.parse(localStorage.getItem(KEY));
+  return x?merge(defaultState,x):structuredClone(defaultState);
+ }catch(e){
+  return structuredClone(defaultState);
+ }
+}
+
+function merge(a,b){
+ const o=structuredClone(a);
+ for(const k in b){
+  if(Array.isArray(b[k]))o[k]=b[k];
+  else if(b[k]&&typeof b[k]==="object"&&o[k]&&typeof o[k]==="object")o[k]=merge(o[k],b[k]);
+  else o[k]=b[k];
+ }
+ return o;
+}
+
+function save(){
+ localStorage.setItem(KEY,JSON.stringify(G));
+ render();
+}
+
+function money(n){
+ return Math.round(n).toLocaleString("ru-RU")+" ₽";
+}
+
+function clamp(n,min=0,max=100){
+ return Math.max(min,Math.min(max,n));
+}
+
+function notify(title,text){
+ document.getElementById("noticeTitle").textContent=title;
+ document.getElementById("noticeText").textContent=text;
+ const n=document.getElementById("notice");
+ n.classList.add("show");
+ setTimeout(()=>n.classList.remove("show"),4000);
+}
+
+function page(id){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+ const btn=[...document.querySelectorAll(".nav button")].find(x=>x.getAttribute("onclick")?.includes("'"+id+"'"));
+ if(btn)btn.classList.add("active");
+ if(innerWidth<=900)document.getElementById("sidebar").style.display="none";
+ render();
+}
+
+function toggleMenu(){
+ const s=document.getElementById("sidebar");
+ s.style.display=s.style.display==="block"?"none":"block";
+}
+
+function stateAction(type,val){
+ if(type==="economy")G.economy=clamp(G.economy+val);
+ if(type==="trust")G.trust=clamp(G.trust+val);
+ if(type==="stability")G.stability=clamp(G.stability+val);
+ G.stateMoney-=Math.max(0,Math.abs(val)*800000000);
+ G.event="Президент изменил государственную политику.";
+ addNews(G.event);
+ save();
+ notify("Государство",G.event);
+}
+
+function decree(){
+ const text=document.getElementById("decree").value.trim();
+ if(!text)return notify("Ошибка","Напиши текст указа.");
+ G.trust=clamp(G.trust+1);
+ G.stateMoney-=50000000;
+ G.event="Подписан новый указ: "+text;
+ addNews(G.event);
+ document.getElementById("decree").value="";
+ save();
+ notify("Указ подписан",text);
+}
+
+function familyAction(type){
+ const effects={
+  hug:[4,5],
+  kiss:[6,4],
+  walk:[5,8],
+  dinner:[5,6],
+  gift:[10,10]
+ };
+ const e=effects[type]||[2,2];
+ G.wife.love=clamp(G.wife.love+e[0]);
+ G.wife.mood=clamp(G.wife.mood+e[1]);
+ if(type==="gift")G.personalMoney-=25000;
+ save();
+ notify("Семья","Елена рада вашему совместному времени.");
+}
+
+function sonAction(type){
+ G.son.mood=clamp(G.son.mood+(type==="gift"?10:6));
+ if(type==="gift")G.personalMoney-=15000;
+ save();
+ notify("Семья","Вы провели время с Максимом.");
+}
+
+function createNPC(){
+ const name=document.getElementById("npcName").value.trim();
+ const job=document.getElementById("npcJob").value.trim()||"Житель";
+ if(!name)return;
+ G.npcs.push({
+  name,job,money:Math.floor(50000+Math.random()*500000),
+  mood:60+Math.floor(Math.random()*30),friend:0
+ });
+ document.getElementById("npcName").value="";
+ document.getElementById("npcJob").value="";
+ addNews("В городе появился новый житель: "+name+".");
+ save();
+}
+
+function createBusiness(){
+ const name=document.getElementById("bizName").value.trim();
+ const type=document.getElementById("bizType").value;
+ if(!name)return notify("Ошибка","Укажи название бизнеса.");
+ const prices={
+  "Магазин":5000000,
+  "Ресторан":12000000,
+  "IT-компания":25000000,
+  "Завод":180000000,
+  "Логистика":50000000,
+  "Отель":90000000,
+  "Автосалон":70000000,
+  "Казино":150000000,
+  "Медиа":30000000,
+  "Строительство":45000000,
+  "Развлечения":35000000
+ };
+ const cost=prices[type]||10000000;
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ const b={
+  id:Date.now(),
+  name,type,
+  value:cost,
+  level:1,
+  income:Math.round(cost*.006)
+ };
+ G.businesses.push(b);
+ G.assets.push({
+  type,
+  name,
+  value:cost,
+  income:b.income,
+  ref:b.id
+ });
+ addNews("Президент Томас приобрёл бизнес «"+name+"».");
+ document.getElementById("bizName").value="";
+ save();
+}
+
+function buyCasino(){
+ const cost=150000000;
+ if(G.personalMoney<cost)return notify("Недостаточно денег","Казино стоит "+money(cost));
+ G.personalMoney-=cost;
+ const c={
+  id:Date.now(),
+  name:"Казино Томаса",
+  value:cost,
+  level:1,
+  income:1800000,
+  visitors:Math.floor(400+Math.random()*900)
+ };
+ G.casinos.push(c);
+ G.assets.push({type:"Казино",name:c.name,value:cost,income:c.income,ref:c.id});
+ addNews("Вы купили собственное казино «"+c.name+"».");
+ save();
+ notify("Казино куплено","Теперь оно приносит ежедневный игровой доход.");
+}
+
+function upgradeCasino(){
+ const c=G.casinos[0];
+ if(!c)return notify("Нет казино","Сначала купи казино.");
+ const cost=c.level*30000000;
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ c.level++;
+ c.value+=cost;
+ c.income=Math.round(c.income*1.35);
+ c.visitors+=150;
+ save();
+}
+
+function slots(){
+ const bet=Number(document.getElementById("slotBet").value);
+ if(!bet||bet<1||G.personalMoney<bet)return notify("Ошибка","Недостаточно личных денег.");
+ G.personalMoney-=bet;
+ const r=Math.random();
+ let mult=0;
+ if(r<.02)mult=10;
+ else if(r<.08)mult=4;
+ else if(r<.25)mult=2;
+ const win=bet*mult;
+ G.personalMoney+=win;
+ document.getElementById("slotResult").innerHTML=
+  `<p>🎰 Выпало: ${mult?mult+"x":"ничего"} — <b>${mult?money(win):"проигрыш "+money(bet)}</b></p>`;
+ save();
+}
+
+function dice(){
+ const bet=Number(document.getElementById("diceBet").value);
+ if(!bet||bet<1||G.personalMoney<bet)return notify("Ошибка","Недостаточно личных денег.");
+ G.personalMoney-=bet;
+ const roll=1+Math.floor(Math.random()*6);
+ if(roll>=4){
+  G.personalMoney+=bet*2;
+  document.getElementById("diceResult").innerHTML=`🎲 Выпало ${roll}. Вы выиграли ${money(bet*2)}.`;
+ }else{
+  document.getElementById("diceResult").innerHTML=`🎲 Выпало ${roll}. Ставка проиграна.`;
+ }
+ save();
+}
+
+function buySalon(){
+ const cost=70000000;
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ const s={
+  id:Date.now(),
+  name:"Автосалон Томаса",
+  value:cost,
+  level:1,
+  income:900000,
+  sales:0
+ };
+ G.salons.push(s);
+ G.assets.push({type:"Автосалон",name:s.name,value:cost,income:s.income,ref:s.id});
+ addNews("Вы открыли личный автосалон.");
+ save();
+}
+
+function upgradeSalon(){
+ const s=G.salons[0];
+ if(!s)return notify("Нет автосалона","Сначала купи автосалон.");
+ const cost=s.level*15000000;
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ s.level++;
+ s.value+=cost;
+ s.income=Math.round(s.income*1.3);
+ save();
+}
+
+function buyCar(name,cost){
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ G.cars.push({name,cost,condition:100,mileage:0});
+ G.purchases.push({day:G.day,text:name,cost});
+ save();
+ notify("Автомобиль куплен",name);
+}
+
+function buyShip(name,cost){
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ G.ships.push({name,cost,condition:100});
+ G.purchases.push({day:G.day,text:name,cost});
+ save();
+}
+
+function buyPersonal(name,cost){
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ G.assets.push({type:"Личное",name,value:cost,income:0});
+ G.purchases.push({day:G.day,text:name,cost});
+ save();
+ notify("Покупка","Приобретено: "+name);
+}
+
+let currentShop="all";
+
+function shopCategory(cat){
+ currentShop=cat;
+ const titles={
+  all:"Каталог",
+  ozon:"Ozon",
+  wb:"Wildberries",
+  tech:"Техника",
+  clothes:"Одежда",
+  food:"Продукты",
+  home:"Дом",
+  auto:"Авто",
+  gift:"Подарки",
+  adult:"🔞 Магазин 18+"
+ };
+ document.getElementById("shopTitle").textContent=titles[cat]||"Каталог";
+ renderShop();
+}
+
+function renderShop(){
+ let arr=G.market;
+ if(currentShop!=="all"){
+  if(currentShop==="ozon"||currentShop==="wb")arr=arr.filter(x=>true);
+  else arr=arr.filter(x=>x.cat===currentShop);
+ }
+ document.getElementById("shopGrid").innerHTML=arr.map((p,i)=>`
+  <div class="card product">
+   <div>
+    <span class="tag">${p.brand}</span>
+    ${p.cat==="adult"?'<span class="tag">18+</span>':''}
+    <h3>${p.name}</h3>
+    <div class="muted">Качество: ${p.quality}/100 · Спрос: ${p.demand}/100</div>
+    <div class="price">${money(p.price)}</div>
+   </div>
+   <button class="good" onclick="buyProduct(${G.market.indexOf(p)})">Купить</button>
+  </div>
+ `).join("");
+}
+
+function buyProduct(i){
+ const p=G.market[i];
+ if(p.cat==="adult"){
+  // Покупка доступна только главному взрослому персонажу игрока.
+ }
+ if(G.personalMoney<p.price)return notify("Недостаточно денег",money(p.price));
+ G.personalMoney-=p.price;
+ G.orders.push({
+  product:p.name,
+  price:p.price,
+  day:G.day,
+  status:"В пути"
+ });
+ G.purchases.push({day:G.day,text:p.name,cost:p.price});
+ addNews("Заказ оформлен: "+p.name+".");
+ save();
+ notify("Заказ оформлен",p.name);
+}
+
+function createAction(){
+ const name=document.getElementById("actionName").value.trim();
+ if(!name)return;
+ G.customActions.push({
+  id:Date.now(),
+  name,
+  description:document.getElementById("actionDescription").value,
+  cost:Number(document.getElementById("actionCost").value)||0,
+  trust:Number(document.getElementById("actionTrust").value)||0,
+  eco:Number(document.getElementById("actionEco").value)||0,
+  love:Number(document.getElementById("actionLove").value)||0,
+  personal:Number(document.getElementById("actionPersonal").value)||0
+ });
+ document.getElementById("actionName").value="";
+ document.getElementById("actionDescription").value="";
+ save();
+}
+
+function executeAction(id){
+ const a=G.customActions.find(x=>x.id===id);
+ if(!a)return;
+ if(G.personalMoney<a.cost)return notify("Недостаточно личных денег","");
+ G.personalMoney-=a.cost;
+ G.trust=clamp(G.trust+a.trust);
+ G.economy=clamp(G.economy+a.eco);
+ G.wife.love=clamp(G.wife.love+a.love);
+ G.personalMoney+=a.personal;
+ G.event=a.name+(a.description?" — "+a.description:"");
+ addNews(G.event);
+ save();
+ notify("Действие выполнено",a.name);
+}
+
+function deleteAction(id){
+ G.customActions=G.customActions.filter(x=>x.id!==id);
+ save();
+}
+
+function addNews(text){
+ G.news.unshift({
+  day:G.day,
+  text,
+  time:new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})
+ });
+ if(G.news.length>60)G.news.pop();
+}
+
+function nextDay(){
+ G.day++;
+
+ const baseIncome=500000000000;
+ G.stateMoney+=baseIncome;
+
+ let income=0;
+
+ G.businesses.forEach(b=>{
+  const v=b.income*(.85+Math.random()*.3);
+  income+=v;
+ });
+
+ G.casinos.forEach(c=>{
+  const v=c.income*(.85+Math.random()*.3);
+  income+=v;
+ });
+
+ G.salons.forEach(s=>{
+  const v=s.income*(.85+Math.random()*.3);
+  income+=v;
+  s.sales+=Math.floor(Math.random()*3);
+ });
+
+ G.personalMoney+=income;
+
+ G.population+=Math.floor((Math.random()-.3)*100000);
+ G.economy=clamp(G.economy+(Math.random()-.45)*2);
+ G.trust=clamp(G.trust+(Math.random()-.5)*2);
+ G.stability=clamp(G.stability+(Math.random()-.45)*2);
+
+ G.wife.mood=clamp(G.wife.mood+(Math.random()-.5)*8);
+ G.wife.love=clamp(G.wife.love+(Math.random()-.55)*3);
+ G.son.mood=clamp(G.son.mood+(Math.random()-.5)*8);
+
+ G.npcs.forEach(n=>{
+  n.mood=clamp(n.mood+(Math.random()-.5)*10);
+  n.money+=Math.floor(10000+Math.random()*50000);
+  n.friend+=Math.random()>.7?1:0;
+ });
+
+ G.orders.forEach(o=>{
+  if(o.status==="В пути")o.status="Доставлен";
+ });
+
+ randomWorldEvent();
+ save();
+ notify("Новый день","День "+G.day+". Мир продолжил жить.");
+}
+
+function randomWorldEvent(){
+ const events=[
+  "В городе открылось новое кафе.",
+  "NPC организовали небольшой городской праздник.",
+  "Спрос на технику вырос.",
+  "Строительная компания получила крупный заказ.",
+  "В новостях обсуждают состояние экономики.",
+  "Несколько жителей решили сменить работу.",
+  "На рынке изменились цены.",
+  "Семья планирует совместный отдых.",
+  "Ваши предприятия получили новых клиентов.",
+  "Автосалоны города объявили сезон распродаж."
+ ];
+ G.event=events[Math.floor(Math.random()*events.length)];
+ addNews(G.event);
+}
+
+function conflictAction(type){
+ const c=document.getElementById("conflictCountry").value;
+ let text="";
+ if(type==="attack")text="Началась игровая операция против "+c+".";
+ if(type==="defend")text="Государство перешло к обороне.";
+ if(type==="truce")text="С "+c+" предложено перемирие.";
+ if(type==="peace")text="С "+c+" заключено мирное соглашение.";
+ G.conflictLog.unshift({day:G.day,text});
+ addNews(text);
+ document.getElementById("conflictLog").innerHTML=G.conflictLog.slice(0,10).map(x=>`<div class="item">День ${x.day}: ${x.text}</div>`).join("");
+ save();
+}
+
+function laptopMessage(){
+ G.messages.unshift({
+  from:"Секретарь",
+  text:"Господин президент, у вас появились новые уведомления.",
+  day:G.day
+ });
+ save();
+}
+
+function resetGame(){
+ if(confirm("Удалить сохранение и начать заново?")){
+  localStorage.removeItem(KEY);
+  location.reload();
+ }
+}
+
+function render(){
+ document.getElementById("stateMoney").textContent=money(G.stateMoney);
+ document.getElementById("personalMoney").textContent=money(G.personalMoney);
+ document.getElementById("population").textContent=G.population.toLocaleString("ru-RU");
+ document.getElementById("day").textContent=G.day;
+ document.getElementById("sideDay").textContent=G.day;
+
+ document.getElementById("economy").textContent=Math.round(G.economy);
+ document.getElementById("trust").textContent=Math.round(G.trust);
+ document.getElementById("stability").textContent=Math.round(G.stability);
+
+ document.getElementById("economyBar").style.width=G.economy+"%";
+ document.getElementById("trustBar").style.width=G.trust+"%";
+ document.getElementById("stabilityBar").style.width=G.stability+"%";
+
+ document.getElementById("stateEco").textContent=Math.round(G.economy);
+ document.getElementById("stateTrust").textContent=Math.round(G.trust);
+ document.getElementById("stateStability").textContent=Math.round(G.stability);
+ document.getElementById("homeEvent").textContent=G.event;
+
+ document.getElementById("wifeMood").textContent=Math.round(G.wife.mood);
+ document.getElementById("wifeLove").textContent=Math.round(G.wife.love);
+ document.getElementById("sonMood").textContent=Math.round(G.son.mood);
+
+ const value=G.assets.reduce((s,a)=>s+(a.value||0),0);
+ const income=G.assets.reduce((s,a)=>s+(a.income||0),0);
+
+ document.getElementById("assetCount").textContent=G.assets.length;
+ document.getElementById("assetsValue").textContent=money(value);
+ document.getElementById("assetsIncome").textContent=money(income);
+ document.getElementById("incomePage").textContent=money(income);
+ document.getElementById("moneyPage").textContent=money(G.personalMoney);
+ document.getElementById("companyCount").textContent=G.businesses.length;
+ document.getElementById("assetObjects").textContent=G.assets.length;
+
+ renderCabinet();
+ renderNPC();
+ renderBusinesses();
+ renderAssets();
+ renderShop();
+ renderOrders();
+ renderCasino();
+ renderSalons();
+ renderGarage();
+ renderPurchases();
+ renderMarket();
+ renderCountries();
+ renderShips();
+ renderMessages();
+ renderNews();
+ renderObserver();
+ renderActions();
+}
+
+function renderCabinet(){
+ const ministers=[
+  ["Алексей Орлов","Председатель правительства"],
+  ["Мария Волкова","Финансы"],
+  ["Илья Соколов","Здравоохранение"],
+  ["Дмитрий Лебедев","Строительство"]
+ ];
+ document.getElementById("cabinet").innerHTML=ministers.map(x=>
+ `<div class="item row"><b>${x[0]}</b><span class="muted">${x[1]}</span></div>`
+ ).join("");
+}
+
+function renderNPC(){
+ document.getElementById("npcList").innerHTML=G.npcs.map((n,i)=>`
+  <div class="item">
+   <div class="row"><b>${n.name}</b><span class="tag">${n.job}</span></div>
+   <div class="muted">Деньги: ${money(n.money)} · Настроение: ${Math.round(n.mood)} · Дружба: ${Math.round(n.friend)}</div>
+   <div class="actions">
+    <button class="smallBtn" onclick="talkNPC(${i})">💬 Поговорить</button>
+    <button class="smallBtn" onclick="giveNPC(${i})">🎁 Подарить 10 000 ₽</button>
+   </div>
+  </div>
+ `).join("");
+}
+
+function talkNPC(i){
+ const n=G.npcs[i];
+ n.mood=clamp(n.mood+5);
+ n.friend+=5;
+ addNews(n.name+" поговорил с президентом.");
+ save();
+ notify("Разговор",n.name+" сказал: «Рад вас видеть!»");
+}
+
+function giveNPC(i){
+ if(G.personalMoney<10000)return notify("Недостаточно денег","");
+ G.personalMoney-=10000;
+ G.npcs[i].money+=10000;
+ G.npcs[i].friend+=10;
+ save();
+}
+
+function renderBusinesses(){
+ document.getElementById("businessList").innerHTML=G.businesses.length?
+ G.businesses.map((b,i)=>`
+ <div class="item">
+  <div class="row">
+   <b>${b.name}</b>
+   <span class="tag">${b.type}</span>
+  </div>
+  <div class="muted">Уровень ${b.level} · Стоимость ${money(b.value)} · Доход/день ${money(b.income)}</div>
+  <div class="actions">
+   <button class="smallBtn" onclick="upgradeBusiness(${i})">⬆️ Улучшить</button>
+   <button class="smallBtn bad" onclick="sellBusiness(${i})">Продать</button>
+  </div>
+ </div>
+ `).join(""):"<div class='muted'>Бизнесов пока нет.</div>";
+}
+
+function upgradeBusiness(i){
+ const b=G.businesses[i];
+ const cost=b.level*5000000;
+ if(G.personalMoney<cost)return notify("Недостаточно денег",money(cost));
+ G.personalMoney-=cost;
+ b.level++;
+ b.value+=cost;
+ b.income=Math.round(b.income*1.25);
+ const a=G.assets.find(x=>x.ref===b.id);
+ if(a){a.value=b.value;a.income=b.income}
+ save();
+}
+
+function sellBusiness(i){
+ const b=G.businesses[i];
+ const got=Math.round(b.value*.8);
+ G.personalMoney+=got;
+ G.businesses.splice(i,1);
+ G.assets=G.assets.filter(a=>a.ref!==b.id);
+ addNews("Продан бизнес «"+b.name+"».");
+ save();
+}
+
+function renderAssets(){
+ document.getElementById("assetList").innerHTML=G.assets.length?
+ G.assets.map(a=>`
+ <div class="item">
+  <div class="row"><b>${a.name}</b><span class="tag">${a.type}</span></div>
+  <div class="muted">Стоимость: ${money(a.value)} · Доход: ${money(a.income||0)}/день</div>
+ </div>
+ `).join(""):"<div class='muted'>Активов пока нет.</div>";
+}
+
+function renderOrders(){
+ document.getElementById("orders").innerHTML=G.orders.length?
+ G.orders.slice().reverse().map(o=>`
+ <div class="item row">
+  <span>📦 ${o.product}</span>
+  <span>${o.status} · ${money(o.price)}</span>
+ </div>
+ `).join(""):"<div class='muted'>Заказов нет.</div>";
+}
+
+function renderCasino(){
+ document.getElementById("myCasino").innerHTML=G.casinos.length?
+ G.casinos.map(c=>`
+  <div class="item">
+   <b>${c.name}</b>
+   <div class="muted">Уровень ${c.level} · Посетителей: ${c.visitors} · Доход: ${money(c.income)}/день</div>
+  </div>
+ `).join(""):"<div class='muted'>У тебя пока нет казино.</div>";
+}
+
+function renderSalons(){
+ document.getElementById("salonList").innerHTML=G.salons.length?
+ G.salons.map(s=>`
+ <div class="item">
+  <b>${s.name}</b>
+  <div class="muted">Уровень ${s.level} · Продаж: ${s.sales} · Доход ${money(s.income)}/день</div>
+ </div>
+ `).join(""):"<div class='muted'>Автосалонов пока нет.</div>";
+
+ document.getElementById("salonSales").innerHTML=G.salons.map(s=>
+ `<div class="item">🚗 ${s.name}: ${s.sales} продаж</div>`
+ ).join("");
+}
+
+function renderGarage(){
+ document.getElementById("garage").innerHTML=G.cars.length?
+ G.cars.map((c,i)=>`
+ <div class="item row">
+  <span>🚘 ${c.name}</span>
+  <span>${money(c.cost)} · ${c.condition}%</span>
+ </div>
+ `).join(""):"<div class='muted'>Гараж пуст.</div>";
+}
+
+function renderPurchases(){
+ document.getElementById("purchaseHistory").innerHTML=G.purchases.length?
+ G.purchases.slice().reverse().map(p=>
+ `<div class="item">День ${p.day}: ${p.text} — <b>${money(p.cost)}</b></div>`
+ ).join(""):"<div class='muted'>Покупок нет.</div>";
+}
+
+function renderMarket(){
+ document.getElementById("marketList").innerHTML=G.market.map(p=>
+ `<div class="item row">
+  <span><b>${p.name}</b> · ${p.brand}</span>
+  <span>${money(p.price)} · спрос ${p.demand}</span>
+ </div>`
+ ).join("");
+}
+
+function renderCountries(){
+ document.getElementById("countries").innerHTML=G.countries.map(c=>
+ `<div class="card">
+  <h3>🌍 ${c.name}</h3>
+  <div>Население: ${c.population} млн</div>
+  <div>Экономика: ${c.economy}/100</div>
+  <div>Отношения: ${c.relation}/100</div>
+ </div>`
+ ).join("");
+}
+
+function renderShips(){
+ document.getElementById("ships").innerHTML=G.ships.length?
+ G.ships.map(s=>`<div class="item">🚢 ${s.name} · ${money(s.cost)} · состояние ${s.condition}%</div>`).join("")
+ :"<div class='muted'>Судов нет.</div>";
+}
+
+function renderMessages(){
+ document.getElementById("messages").innerHTML=G.messages.length?
+ G.messages.map(m=>`<div class="item"><b>${m.from}</b>: ${m.text}</div>`).join("")
+ :"Нет новых сообщений.";
+}
+
+function renderNews(){
+ document.getElementById("newsList").innerHTML=G.news.length?
+ G.news.map(n=>`
+ <div class="item">
+  <span class="tag">День ${n.day}</span>
+  <span class="muted">${n.time}</span>
+  <div style="margin-top:6px">${n.text}</div>
+ </div>
+ `).join("")
+ :"Новостей пока нет.";
+}
+
+function renderObserver(){
+ document.getElementById("observerNPC").textContent=G.npcs.length;
+ document.getElementById("observerBiz").textContent=G.businesses.length;
+ document.getElementById("observerOrders").textContent=G.orders.length;
+ document.getElementById("observerCars").textContent=G.cars.length;
+
+ const feed=[];
+ G.npcs.slice(0,5).forEach(n=>{
+  const activities=["идёт на работу","покупает продукты","общается с друзьями","отдыхает","едет домой"];
+  feed.push("👤 "+n.name+" "+activities[Math.floor(Math.random()*activities.length)]+".");
+ });
+ G.businesses.slice(0,3).forEach(b=>{
+  feed.push("🏢 «"+b.name+"» работает и обслуживает клиентов.");
+ });
+ G.orders.slice(-3).forEach(o=>{
+  feed.push("📦 Заказ «"+o.product+"»: "+o.status+".");
+ });
+
+ document.getElementById("observerFeed").innerHTML=feed.map(x=>`<div class="item">${x}</div>`).join("");
+}
+
+function renderActions(){
+ document.getElementById("customActions").innerHTML=G.customActions.length?
+ G.customActions.map(a=>`
+ <div class="item">
+  <div class="row"><b>${a.name}</b><span>${money(a.cost)}</span></div>
+  <div class="muted">${a.description}</div>
+  <div class="actions">
+   <button class="good smallBtn" onclick="executeAction(${a.id})">▶ Выполнить</button>
+   <button class="bad smallBtn" onclick="deleteAction(${a.id})">Удалить</button>
+  </div>
+ </div>
+ `).join(""):"Своих действий пока нет.";
+}
+
+render();
+
+setInterval(()=>{
+ // Мир живёт самостоятельно.
+ G.npcs.forEach(n=>{
+  n.mood=clamp(n.mood+(Math.random()-.5)*3);
+ });
+ renderObserver();
+ save();
+},35000);
+</script>
+
+</body>
+</html>

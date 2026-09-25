@@ -1,0 +1,3585 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Президент — Симулятор государства</title>
+
+<style>
+*{box-sizing:border-box}
+
+:root{
+    --bg:#080a0f;
+    --panel:#11151d;
+    --panel2:#171c26;
+    --border:#28303c;
+    --text:#f3f5f7;
+    --muted:#8d98a7;
+    --accent:#6ea8ff;
+    --green:#4fd18b;
+    --red:#ff6464;
+    --yellow:#ffd166;
+    --purple:#b58cff;
+}
+
+body{
+    margin:0;
+    background:linear-gradient(135deg,#080a0f,#0d1118);
+    color:var(--text);
+    font-family:Arial,Helvetica,sans-serif;
+    min-height:100vh;
+}
+
+button,input,textarea,select{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.app{
+    display:flex;
+    min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:235px;
+    background:#0b0e14;
+    border-right:1px solid var(--border);
+    padding:16px 12px;
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    overflow:auto;
+    z-index:20;
+}
+
+.logo{
+    font-size:20px;
+    font-weight:bold;
+    padding:10px;
+    margin-bottom:12px;
+}
+
+.nav button{
+    width:100%;
+    text-align:left;
+    border:0;
+    background:transparent;
+    color:#aeb7c4;
+    padding:12px;
+    border-radius:10px;
+    margin:2px 0;
+}
+
+.nav button:hover,
+.nav button.active{
+    background:#1a2230;
+    color:white;
+}
+
+.main{
+    margin-left:235px;
+    width:calc(100% - 235px);
+    padding:18px;
+    max-width:1700px;
+}
+
+/* HEADER */
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.title{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.top-info{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.badge{
+    background:var(--panel);
+    border:1px solid var(--border);
+    padding:8px 11px;
+    border-radius:9px;
+    color:#d9dee6;
+    font-size:13px;
+}
+
+/* CARDS */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+}
+
+.grid2{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+
+.card{
+    background:rgba(17,21,29,.96);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,.15);
+}
+
+.card h2,
+.card h3{
+    margin:0 0 12px;
+}
+
+.stat{
+    font-size:25px;
+    font-weight:bold;
+}
+
+.muted{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.big-number{
+    font-size:30px;
+    font-weight:bold;
+    margin:7px 0;
+}
+
+.row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}
+
+.stack{
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.progress{
+    height:9px;
+    background:#252b35;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:7px;
+}
+
+.progress i{
+    display:block;
+    height:100%;
+    background:var(--accent);
+    border-radius:10px;
+}
+
+.green{color:var(--green)}
+.red{color:var(--red)}
+.yellow{color:var(--yellow)}
+.purple{color:var(--purple)}
+
+.event{
+    border-left:4px solid var(--accent);
+}
+
+.event h2{
+    margin-top:0;
+}
+
+.action-list{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+}
+
+.btn{
+    border:1px solid var(--border);
+    background:#1a202a;
+    color:white;
+    padding:10px 12px;
+    border-radius:9px;
+    transition:.15s;
+}
+
+.btn:hover{
+    background:#232c3a;
+    transform:translateY(-1px);
+}
+
+.btn.primary{
+    background:#24569d;
+    border-color:#3577d1;
+}
+
+.btn.green{
+    background:#174d39;
+    border-color:#287d5c;
+}
+
+.btn.red{
+    background:#542328;
+    border-color:#88353e;
+}
+
+.btn.yellow{
+    background:#51431e;
+    border-color:#806c28;
+}
+
+.btn.purple{
+    background:#3b2b63;
+    border-color:#60489b;
+}
+
+.btn.small{
+    padding:7px 9px;
+    font-size:12px;
+}
+
+.empty{
+    color:var(--muted);
+    text-align:center;
+    padding:20px 5px;
+}
+
+/* LISTS */
+
+.list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.list-item{
+    background:#151a23;
+    border:1px solid #222a35;
+    border-radius:10px;
+    padding:11px;
+}
+
+.avatar{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#252d3b;
+    font-size:21px;
+    flex-shrink:0;
+}
+
+.person{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+/* FORMS */
+
+input,textarea,select{
+    width:100%;
+    background:#0c1016;
+    color:white;
+    border:1px solid var(--border);
+    padding:10px;
+    border-radius:9px;
+    outline:none;
+}
+
+textarea{
+    min-height:90px;
+    resize:vertical;
+}
+
+label{
+    display:block;
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:5px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
+/* TABLE */
+
+.table-wrap{
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:550px;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+}
+
+th{
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* MODAL */
+
+.modal-bg{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.72);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+    z-index:100;
+}
+
+.modal-bg.show{
+    display:flex;
+}
+
+.modal{
+    width:min(650px,100%);
+    max-height:90vh;
+    overflow:auto;
+    background:#11161e;
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:18px;
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+/* NOTIFICATION */
+
+.notifications{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    width:min(380px,calc(100% - 36px));
+    z-index:80;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.notice{
+    background:#151b24;
+    border:1px solid #354052;
+    border-radius:13px;
+    padding:13px;
+    box-shadow:0 10px 35px rgba(0,0,0,.45);
+    animation:slide .25s ease;
+}
+
+@keyframes slide{
+    from{transform:translateY(20px);opacity:0}
+    to{transform:translateY(0);opacity:1}
+}
+
+/* PHONE NAV */
+
+.mobile-nav{
+    display:none;
+}
+
+/* SECTION */
+
+.section{
+    display:none;
+}
+
+.section.active{
+    display:block;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1100px){
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:800px){
+    .sidebar{
+        display:none;
+    }
+
+    .main{
+        margin-left:0;
+        width:100%;
+        padding:12px 12px 80px;
+    }
+
+    .grid,
+    .grid2{
+        grid-template-columns:1fr;
+    }
+
+    .action-list{
+        grid-template-columns:1fr;
+    }
+
+    .topbar{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .mobile-nav{
+        display:flex;
+        position:fixed;
+        bottom:0;
+        left:0;
+        right:0;
+        height:62px;
+        background:#0b0e14;
+        border-top:1px solid var(--border);
+        z-index:50;
+        overflow-x:auto;
+    }
+
+    .mobile-nav button{
+        flex:1;
+        min-width:72px;
+        border:0;
+        background:transparent;
+        color:#9ca7b5;
+        font-size:11px;
+    }
+
+    .mobile-nav button.active{
+        color:white;
+        background:#18202c;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .big-number{
+        font-size:26px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+    <div class="logo">🏛️ Президент</div>
+
+    <div class="nav">
+        <button onclick="showSection('home')" data-nav="home">🏠 Главная</button>
+        <button onclick="showSection('state')" data-nav="state">🏛️ Государство</button>
+        <button onclick="showSection('family')" data-nav="family">👨‍👩‍👧 Семья</button>
+        <button onclick="showSection('npc')" data-nav="npc">🤖 NPC</button>
+        <button onclick="showSection('business')" data-nav="business">💼 Бизнес</button>
+        <button onclick="showSection('market')" data-nav="market">🛒 Рынок</button>
+        <button onclick="showSection('world')" data-nav="world">🌍 Мир</button>
+        <button onclick="showSection('war')" data-nav="war">⚔️ Конфликт</button>
+        <button onclick="showSection('fleet')" data-nav="fleet">🚗 Автопарк</button>
+        <button onclick="showSection('money')" data-nav="money">💰 Личные деньги</button>
+        <button onclick="showSection('casino')" data-nav="casino">🎰 Казино</button>
+        <button onclick="showSection('laptop')" data-nav="laptop">💻 Ноутбук</button>
+        <button onclick="showSection('news')" data-nav="news">📰 Новости</button>
+        <button onclick="showSection('observe')" data-nav="observe">👁️ Наблюдение</button>
+        <button onclick="showSection('actions')" data-nav="actions">➕ Свои действия</button>
+        <button onclick="showSection('settings')" data-nav="settings">⚙️ Настройки</button>
+    </div>
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+    <div>
+        <div class="title">Президент — Симулятор государства</div>
+        <div class="muted">Вымышленный мир · день <span id="day">1</span></div>
+    </div>
+
+    <div class="top-info">
+        <div class="badge">🏛️ <span id="topBudget">18.4</span> трлн ₽</div>
+        <div class="badge">💰 <span id="topMoney">250000</span> ₽</div>
+        <div class="badge">👥 <span id="topPopulation">146.0</span> млн</div>
+    </div>
+</header>
+
+
+<!-- HOME -->
+
+<section id="home" class="section active">
+
+<div class="grid">
+
+<div class="card">
+    <div class="muted">Государственный бюджет</div>
+    <div class="big-number"><span id="homeBudget">18.4</span> трлн ₽</div>
+    <div class="muted">Доход за день: +<span id="dailyIncome">0.18</span> трлн ₽</div>
+</div>
+
+<div class="card">
+    <div class="muted">Личные деньги</div>
+    <div class="big-number">₽ <span id="homeMoney">250000</span></div>
+    <div class="muted">Отдельно от бюджета государства</div>
+</div>
+
+<div class="card">
+    <div class="muted">Население</div>
+    <div class="big-number"><span id="homePopulation">146.0</span> млн</div>
+    <div class="muted">Мир продолжает жить сам</div>
+</div>
+
+</div>
+
+<br>
+
+<div class="grid">
+
+<div class="card">
+    <div class="row">
+        <h3>📈 Экономика</h3>
+        <b id="economyText">72</b>
+    </div>
+    <div class="progress"><i id="economyBar"></i></div>
+</div>
+
+<div class="card">
+    <div class="row">
+        <h3>🤝 Доверие</h3>
+        <b id="trustText">62</b>
+    </div>
+    <div class="progress"><i id="trustBar"></i></div>
+</div>
+
+<div class="card">
+    <div class="row">
+        <h3>🛡️ Стабильность</h3>
+        <b id="stabilityText">70</b>
+    </div>
+    <div class="progress"><i id="stabilityBar"></i></div>
+</div>
+
+</div>
+
+<br>
+
+<div class="grid2">
+
+<div class="card event">
+    <h2>📰 Событие дня</h2>
+    <div id="eventBox"></div>
+</div>
+
+<div class="card">
+    <h2>🔔 Последние уведомления</h2>
+    <div id="homeNotifications" class="list"></div>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+    <h2>📰 Последние новости</h2>
+    <div id="homeNews" class="list"></div>
+</div>
+
+<br>
+
+<div class="card">
+    <h2>⏭️ Управление временем</h2>
+    <button class="btn primary" onclick="nextDay()">Перейти к следующему дню</button>
+</div>
+
+</section>
+
+
+<!-- STATE -->
+
+<section id="state" class="section">
+
+<div class="grid">
+
+<div class="card">
+    <h2>🏛️ Государство</h2>
+    <p class="muted">Основные показатели страны.</p>
+
+    <div class="stack">
+        <div>💰 Бюджет: <b><span id="stateBudget"></span> трлн ₽</b></div>
+        <div>👥 Население: <b><span id="statePop"></span> млн</b></div>
+        <div>📈 Экономика: <b><span id="stateEco"></span>/100</b></div>
+        <div>🤝 Доверие: <b><span id="stateTrust"></span>/100</b></div>
+        <div>🛡️ Стабильность: <b><span id="stateStability"></span>/100</b></div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>📜 Быстрые решения</h2>
+    <div class="action-list">
+        <button class="btn" onclick="stateAction('roads')">🛣️ Развивать дороги</button>
+        <button class="btn" onclick="stateAction('hospital')">🏥 Открыть больницу</button>
+        <button class="btn" onclick="stateAction('education')">🎓 Поддержать образование</button>
+        <button class="btn" onclick="stateAction('science')">🔬 Наука</button>
+        <button class="btn" onclick="stateAction('business')">🏭 Поддержать бизнес</button>
+        <button class="btn" onclick="openCustomAction('state')">➕ Своё решение</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>👔 Кабинет</h2>
+    <div id="ministers" class="list"></div>
+    <br>
+    <button class="btn primary" onclick="cabinetMeeting()">Созвать совещание</button>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+    <h2>📜 Указы</h2>
+    <div class="form-grid">
+        <div class="full">
+            <label>Название указа</label>
+            <input id="decreeTitle" placeholder="Например: Программа развития городов">
+        </div>
+
+        <div class="full">
+            <label>Текст</label>
+            <textarea id="decreeText" placeholder="Что меняет указ?"></textarea>
+        </div>
+
+        <div>
+            <label>Стоимость, млрд ₽</label>
+            <input id="decreeCost" type="number" value="50">
+        </div>
+
+        <div>
+            <label>Влияние на доверие</label>
+            <input id="decreeTrust" type="number" value="1">
+        </div>
+    </div>
+
+    <br>
+    <button class="btn primary" onclick="createDecree()">📜 Подписать указ</button>
+</div>
+
+</section>
+
+
+<!-- FAMILY -->
+
+<section id="family" class="section">
+
+<div class="grid2">
+
+<div class="card">
+    <h2>👨‍👩‍👧 Семья</h2>
+    <p class="muted">Семья живёт своей жизнью. Некоторые события происходят автоматически.</p>
+    <div id="familyMembers" class="list"></div>
+</div>
+
+<div class="card">
+    <h2>❤️ Совместные действия</h2>
+    <div class="action-list">
+        <button class="btn" onclick="familyAction('kiss')">💋 Поцеловать</button>
+        <button class="btn" onclick="familyAction('hug')">🤗 Обнять</button>
+        <button class="btn" onclick="familyAction('dinner')">🍽️ Ужин вместе</button>
+        <button class="btn" onclick="familyAction('walk')">🚶 Пойти гулять</button>
+        <button class="btn" onclick="familyAction('movie')">🎬 Посмотреть фильм</button>
+        <button class="btn" onclick="familyAction('gift')">🎁 Подарить подарок</button>
+        <button class="btn" onclick="openCustomAction('family')">➕ Своё действие</button>
+    </div>
+
+    <br>
+    <div class="list-item">
+        ❤️ Близость: <b id="familyLove"></b>/100
+        <div class="progress"><i id="familyLoveBar"></i></div>
+    </div>
+
+    <div class="list-item">
+        🙂 Настроение семьи: <b id="familyMood"></b>/100
+        <div class="progress"><i id="familyMoodBar"></i></div>
+    </div>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+    <h2>📖 Жизнь семьи</h2>
+    <div id="familyLog" class="list"></div>
+</div>
+
+</section>
+
+
+<!-- NPC -->
+
+<section id="npc" class="section">
+
+<div class="grid2">
+
+<div class="card">
+    <h2>🤖 NPC мира</h2>
+    <p class="muted">Персонажи могут общаться и действовать без участия президента.</p>
+    <div id="npcList" class="list"></div>
+    <br>
+    <button class="btn primary" onclick="openNPCForm()">➕ Создать NPC</button>
+</div>
+
+<div class="card">
+    <h2>💬 Жизнь NPC</h2>
+    <div id="npcFeed" class="list"></div>
+</div>
+
+</div>
+
+</section>
+
+
+<!-- BUSINESS -->
+
+<section id="business" class="section">
+
+<div class="grid">
+
+<div class="card">
+    <h2>💼 Бизнес</h2>
+    <div class="big-number">₽ <span id="businessValue">0</span></div>
+    <div class="muted">Стоимость твоих предприятий</div>
+</div>
+
+<div class="card">
+    <h2>📊 Доход</h2>
+    <div class="big-number">₽ <span id="businessIncome">0</span></div>
+    <div class="muted">Примерный доход в день</div>
+</div>
+
+<div class="card">
+    <h2>🏢 Предприятия</h2>
+    <div class="big-number"><span id="businessCount">0</span></div>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+    <button class="btn primary" onclick="openBusinessForm()">➕ Создать бизнес</button>
+    <button class="btn" onclick="openCustomAction('business')">➕ Своё действие</button>
+</div>
+
+<br>
+
+<div id="businessList" class="grid"></div>
+
+</section>
+
+
+<!-- MARKET -->
+
+<section id="market" class="section">
+
+<div class="card">
+    <h2>🛒 Рынок</h2>
+    <p class="muted">Товары, бренды и предпочтения покупателей.</p>
+
+    <div id="marketList" class="grid"></div>
+</div>
+
+<br>
+
+<div class="card">
+    <h2>🏪 Игровые магазины</h2>
+    <div class="grid">
+        <div class="list-item">
+            <b>🟣 Ozon</b>
+            <p class="muted">Маркетплейс · доставка · склады</p>
+            <button class="btn small" onclick="shop('Ozon')">Открыть</button>
+        </div>
+
+        <div class="list-item">
+            <b>🟠 Wildberries</b>
+            <p class="muted">Маркетплейс · пункты выдачи</p>
+            <button class="btn small" onclick="shop('Wildberries')">Открыть</button>
+        </div>
+
+        <div class="list-item">
+            <b>🚚 Транспортные компании</b>
+            <p class="muted">Грузоперевозки и логистика</p>
+            <button class="btn small" onclick="shop('Транспорт')">Открыть</button>
+        </div>
+    </div>
+</div>
+
+</section>
+
+
+<!-- WORLD -->
+
+<section id="world" class="section">
+
+<div class="card">
+    <h2>🌍 Мир</h2>
+    <p class="muted">Вымышленные государства и мировая экономика.</p>
+
+    <div id="countries" class="grid"></div>
+</div>
+
+</section>
+
+
+<!-- WAR -->
+
+<section id="war" class="section">
+
+<div class="card">
+    <h2>⚔️ Конфликт</h2>
+    <p class="muted">Абстрактная игровая система конфликтов между вымышленными государствами.</p>
+
+    <div class="grid">
+
+        <div class="list-item">
+            <div class="muted">Состояние</div>
+            <div class="big-number" id="warStatus">Мир</div>
+        </div>
+
+        <div class="list-item">
+            <div class="muted">Снабжение</div>
+            <div class="big-number" id="warSupply">100</div>
+        </div>
+
+        <div class="list-item">
+            <div class="muted">Мораль</div>
+            <div class="big-number" id="warMorale">70</div>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="action-list">
+        <button class="btn red" onclick="warAction('attack')">⚔️ Атака</button>
+        <button class="btn" onclick="warAction('defense')">🛡️ Оборона</button>
+        <button class="btn yellow" onclick="warAction('capture')">🚩 Захват региона</button>
+        <button class="btn" onclick="warAction('retreat')">🔄 Отступить</button>
+        <button class="btn green" onclick="warAction('truce')">🕊️ Предложить перемирие</button>
+        <button class="btn primary" onclick="warAction('peace')">🤝 Мирный договор</button>
+    </div>
+</div>
+
+</section>
+
+
+<!-- FLEET -->
+
+<section id="fleet" class="section">
+
+<div class="card">
+    <h2>🚗 Автопарк</h2>
+    <p class="muted">Личные автомобили. Можно покупать, продавать и обслуживать.</p>
+
+    <button class="btn primary" onclick="openCarForm()">🚗 Купить автомобиль</button>
+
+    <br><br>
+
+    <div id="fleetList" class="grid"></div>
+</div>
+
+</section>
+
+
+<!-- MONEY -->
+
+<section id="money" class="section">
+
+<div class="grid">
+
+<div class="card">
+    <h2>💰 Личные финансы</h2>
+    <div class="big-number">₽ <span id="personalMoney">250000</span></div>
+    <p class="muted">Это твои личные средства, они не относятся к бюджету государства.</p>
+</div>
+
+<div class="card">
+    <h2>💸 Потратить</h2>
+    <div class="action-list">
+        <button class="btn" onclick="spendMoney(5000,'Ресторан')">🍽️ Ресторан — 5 000 ₽</button>
+        <button class="btn" onclick="spendMoney(10000,'Отдых')">🏖️ Отдых — 10 000 ₽</button>
+        <button class="btn" onclick="spendMoney(3000,'Одежда')">👕 Одежда — 3 000 ₽</button>
+        <button class="btn" onclick="spendMoney(15000,'Техника')">📱 Техника — 15 000 ₽</button>
+        <button class="btn" onclick="spendMoney(7000,'Подарок семье')">🎁 Подарок семье — 7 000 ₽</button>
+    </div>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+    <h2>🏠 Крупные покупки</h2>
+
+    <div class="grid">
+        <div class="list-item">
+            🏠 Квартира
+            <br><br>
+            <b>8 000 000 ₽</b>
+            <br><br>
+            <button class="btn small" onclick="buyLarge('Квартира',8000000)">Купить</button>
+        </div>
+
+        <div class="list-item">
+            🛥️ Яхта
+            <br><br>
+            <b>35 000 000 ₽</b>
+            <br><br>
+            <button class="btn small" onclick="buyLarge('Яхта',35000000)">Купить</button>
+        </div>
+
+        <div class="list-item">
+            ✈️ Самолёт
+            <br><br>
+            <b>120 000 000 ₽</b>
+            <br><br>
+            <button class="btn small" onclick="buyLarge('Самолёт',120000000)">Купить</button>
+        </div>
+    </div>
+</div>
+
+</section>
+
+
+<!-- CASINO -->
+
+<section id="casino" class="section">
+
+<div class="card">
+    <h2>🎰 Казино</h2>
+    <p class="muted">Только виртуальные игровые деньги. Реальных денег здесь нет.</p>
+
+    <div class="big-number">Игровой баланс: ₽ <span id="casinoMoney"></span></div>
+
+    <div class="grid">
+
+        <div class="list-item">
+            <h3>🎰 Слоты</h3>
+            <button class="btn" onclick="casinoSlots()">Сделать ставку 1 000 ₽</button>
+        </div>
+
+        <div class="list-item">
+            <h3>🎲 Кубики</h3>
+            <button class="btn" onclick="casinoDice()">Бросить за 1 000 ₽</button>
+        </div>
+
+        <div class="list-item">
+            <h3>🃏 Карты</h3>
+            <button class="btn" onclick="casinoCards()">Игра за 2 000 ₽</button>
+        </div>
+    </div>
+</div>
+
+<br>
+
+<div class="card">
+    <h2>📜 История казино</h2>
+    <div id="casinoLog" class="list"></div>
+</div>
+
+</section>
+
+
+<!-- LAPTOP -->
+
+<section id="laptop" class="section">
+
+<div class="card">
+    <h2>💻 Ноутбук</h2>
+    <p class="muted">Уведомления продолжают приходить, даже когда ты находишься здесь.</p>
+
+    <div class="grid">
+
+        <button class="btn" onclick="laptopPage('mail')">📧 Почта</button>
+        <button class="btn" onclick="laptopPage('messages')">💬 Сообщения</button>
+        <button class="btn" onclick="laptopPage('news')">📰 Новости</button>
+        <button class="btn" onclick="laptopPage('bank')">🏦 Банк</button>
+        <button class="btn" onclick="laptopPage('shops')">🛒 Магазины</button>
+        <button class="btn" onclick="laptopPage('documents')">📋 Документы</button>
+        <button class="btn" onclick="laptopPage('government')">🏛️ Правительство</button>
+        <button class="btn" onclick="laptopPage('notifications')">🔔 Уведомления</button>
+
+    </div>
+</div>
+
+<br>
+
+<div class="card">
+    <h2 id="laptopTitle">📨 Входящие</h2>
+    <div id="laptopContent" class="list"></div>
+</div>
+
+</section>
+
+
+<!-- NEWS -->
+
+<section id="news" class="section">
+
+<div class="card">
+    <h2>📰 Новости мира</h2>
+
+    <div class="action-list">
+        <button class="btn" onclick="filterNews('all')">Все</button>
+        <button class="btn" onclick="filterNews('world')">🌍 Мир</button>
+        <button class="btn" onclick="filterNews('economy')">📈 Экономика</button>
+        <button class="btn" onclick="filterNews('business')">💼 Бизнес</button>
+        <button class="btn" onclick="filterNews('family')">👨‍👩‍👧 Семья</button>
+        <button class="btn" onclick="filterNews('personal')">👤 Личное</button>
+    </div>
+</div>
+
+<br>
+
+<div id="newsList" class="list"></div>
+
+</section>
+
+
+<!-- OBSERVE -->
+
+<section id="observe" class="section">
+
+<div class="card">
+    <h2>👁️ Наблюдение</h2>
+    <p class="muted">Выбери объект и посмотри, что с ним происходит.</p>
+
+    <div class="action-list">
+        <button class="btn" onclick="observe('npc')">🤖 NPC</button>
+        <button class="btn" onclick="observe('family')">👨‍👩‍👧 Семья</button>
+        <button class="btn" onclick="observe('business')">💼 Бизнес</button>
+        <button class="btn" onclick="observe('country')">🌍 Страна</button>
+        <button class="btn" onclick="observe('city')">🏙️ Город</button>
+    </div>
+</div>
+
+<br>
+
+<div class="card">
+    <h2>🔎 Наблюдение</h2>
+    <div id="observeResult"></div>
+</div>
+
+</section>
+
+
+<!-- ACTIONS -->
+
+<section id="actions" class="section">
+
+<div class="card">
+    <h2>➕ Конструктор своих действий</h2>
+    <p class="muted">
+        Создай действие один раз — оно появится в игре и сохранится в браузере.
+    </p>
+
+    <button class="btn primary" onclick="openCustomAction('general')">➕ Создать действие</button>
+</div>
+
+<br>
+
+<div id="customActionsList" class="grid"></div>
+
+</section>
+
+
+<!-- SETTINGS -->
+
+<section id="settings" class="section">
+
+<div class="card">
+    <h2>⚙️ Настройки</h2>
+
+    <button class="btn" onclick="saveGame();notify('💾','Игра сохранена')">
+        💾 Сохранить
+    </button>
+
+    <button class="btn red" onclick="resetGame()">
+        🗑️ Начать заново
+    </button>
+</div>
+
+<br>
+
+<div class="card">
+    <h2>ℹ️ О версии</h2>
+    <p class="muted">
+        Первая большая версия симулятора.
+        Мир работает локально в браузере и сохраняется через localStorage.
+    </p>
+</div>
+
+</section>
+
+</main>
+</div>
+
+
+<!-- MOBILE NAV -->
+
+<nav class="mobile-nav">
+    <button onclick="showSection('home')" data-nav="home">🏠<br>Главная</button>
+    <button onclick="showSection('state')" data-nav="state">🏛️<br>Гос.</button>
+    <button onclick="showSection('family')" data-nav="family">👨‍👩‍👧<br>Семья</button>
+    <button onclick="showSection('business')" data-nav="business">💼<br>Бизнес</button>
+    <button onclick="showSection('world')" data-nav="world">🌍<br>Мир</button>
+    <button onclick="showSection('laptop')" data-nav="laptop">💻<br>Ноутбук</button>
+    <button onclick="showSection('news')" data-nav="news">📰<br>Новости</button>
+</nav>
+
+
+<!-- MODAL -->
+
+<div id="modalBg" class="modal-bg" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal"></div>
+</div>
+
+
+<div class="notifications" id="notifications"></div>
+
+
+<script>
+
+/* =========================
+   GAME DATA
+========================= */
+
+const defaultState = {
+
+    version:2,
+
+    day:1,
+
+    budget:18.4,
+    population:146.0,
+    economy:72,
+    trust:62,
+    stability:70,
+
+    personalMoney:250000,
+
+    family:{
+        love:75,
+        mood:72,
+        members:[
+            {
+                name:"Елена",
+                role:"жена",
+                mood:78,
+                activity:"дома",
+                age:25
+            },
+            {
+                name:"Максим",
+                role:"сын",
+                mood:70,
+                activity:"учится",
+                age:7
+            }
+        ],
+        log:[]
+    },
+
+    npc:[
+        {
+            id:1,
+            name:"Алексей",
+            age:34,
+            job:"инженер",
+            money:78000,
+            mood:71,
+            friend:2,
+            activity:"работает"
+        },
+        {
+            id:2,
+            name:"Марина",
+            age:29,
+            job:"врач",
+            money:92000,
+            mood:82,
+            friend:1,
+            activity:"работает"
+        },
+        {
+            id:3,
+            name:"Игорь",
+            age:42,
+            job:"предприниматель",
+            money:310000,
+            mood:63,
+            friend:null,
+            activity:"развивает бизнес"
+        },
+        {
+            id:4,
+            name:"Сергей",
+            age:31,
+            job:"водитель",
+            money:69000,
+            mood:67,
+            friend:3,
+            activity:"в дороге"
+        }
+    ],
+
+    npcFeed:[],
+
+    businesses:[],
+
+    fleet:[],
+
+    countries:[
+        {
+            name:"Республика Северия",
+            population:48,
+            economy:76,
+            relation:55,
+            goods:["машины","техника","металл"]
+        },
+        {
+            name:"Федерация Альтания",
+            population:81,
+            economy:82,
+            relation:42,
+            goods:["одежда","электроника","продукты"]
+        },
+        {
+            name:"Королевство Вестмар",
+            population:34,
+            economy:68,
+            relation:70,
+            goods:["нефть","древесина","суда"]
+        },
+        {
+            name:"Островная Лигория",
+            population:19,
+            economy:91,
+            relation:61,
+            goods:["микросхемы","медицина","роботы"]
+        }
+    ],
+
+    war:{
+        active:false,
+        target:"",
+        status:"Мир",
+        supply:100,
+        morale:70
+    },
+
+    products:[
+        {name:"Смартфон Nova X",brand:"Nova",country:"Лигория",price:70000,quality:91,demand:76},
+        {name:"Кроссовки Sprint",brand:"Sprint",country:"Альтания",price:12000,quality:82,demand:71},
+        {name:"Автомобиль Volta",brand:"Volta",country:"Северия",price:2200000,quality:86,demand:68},
+        {name:"Куртка Urban",brand:"Urban",country:"Альтания",price:18000,quality:79,demand:74},
+        {name:"Телевизор Vision",brand:"Vision",country:"Лигория",price:90000,quality:88,demand:63},
+        {name:"Ноутбук ProBook",brand:"ProBook",country:"Северия",price:110000,quality:84,demand:79}
+    ],
+
+    casinoLog:[],
+
+    news:[],
+
+    notifications:[],
+
+    customActions:[]
+};
+
+let state = loadGame();
+
+/* =========================
+   SAVE / LOAD
+========================= */
+
+function deepClone(obj){
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function mergeDefaults(saved, defaults){
+    if(!saved || typeof saved !== "object") return deepClone(defaults);
+
+    const result=deepClone(defaults);
+
+    Object.keys(saved).forEach(k=>{
+        if(
+            saved[k] &&
+            typeof saved[k]==="object" &&
+            !Array.isArray(saved[k]) &&
+            result[k] &&
+            typeof result[k]==="object" &&
+            !Array.isArray(result[k])
+        ){
+            result[k]=mergeDefaults(saved[k],result[k]);
+        }else{
+            result[k]=saved[k];
+        }
+    });
+
+    return result;
+}
+
+function loadGame(){
+    try{
+        const saved=JSON.parse(localStorage.getItem("presidentGame"));
+        return mergeDefaults(saved,defaultState);
+    }catch(e){
+        return deepClone(defaultState);
+    }
+}
+
+function saveGame(){
+    localStorage.setItem("presidentGame",JSON.stringify(state));
+}
+
+function resetGame(){
+
+    if(!confirm("Начать новую игру? Текущее сохранение будет удалено.")) return;
+
+    localStorage.removeItem("presidentGame");
+    state=deepClone(defaultState);
+
+    renderAll();
+    showSection("home");
+    notify("🔄","Новая игра начата");
+}
+
+
+/* =========================
+   BASIC HELPERS
+========================= */
+
+function clamp(value,min=0,max=100){
+    return Math.max(min,Math.min(max,value));
+}
+
+function moneyFormat(n){
+    return Math.round(n).toLocaleString("ru-RU");
+}
+
+function random(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function choice(arr){
+    return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function escapeHTML(str){
+    return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+/* =========================
+   NAVIGATION
+========================= */
+
+function showSection(id){
+
+    document.querySelectorAll(".section").forEach(s=>{
+        s.classList.remove("active");
+    });
+
+    const section=document.getElementById(id);
+
+    if(section) section.classList.add("active");
+
+    document.querySelectorAll("[data-nav]").forEach(b=>{
+        b.classList.toggle("active",b.dataset.nav===id);
+    });
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+    renderAll();
+}
+
+
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+function notify(icon,text){
+
+    state.notifications.unshift({
+        day:state.day,
+        icon,
+        text,
+        time:new Date().toLocaleTimeString("ru-RU",{
+            hour:"2-digit",
+            minute:"2-digit"
+        })
+    });
+
+    state.notifications=state.notifications.slice(0,30);
+
+    const box=document.getElementById("notifications");
+
+    const el=document.createElement("div");
+    el.className="notice";
+
+    el.innerHTML=`
+        <div class="row">
+            <b>${icon} ${escapeHTML(text)}</b>
+            <button class="btn small" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+        <div class="muted">День ${state.day}</div>
+    `;
+
+    box.prepend(el);
+
+    setTimeout(()=>{
+        if(el.parentNode) el.remove();
+    },6500);
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   NEWS
+========================= */
+
+function addNews(category,title,text){
+
+    state.news.unshift({
+        day:state.day,
+        category,
+        title,
+        text
+    });
+
+    state.news=state.news.slice(0,60);
+
+    saveGame();
+}
+
+function renderNews(){
+
+    const list=document.getElementById("newsList");
+
+    if(!list)return;
+
+    const items=state.news;
+
+    list.innerHTML=items.length
+        ?items.map(n=>`
+            <div class="list-item">
+                <div class="row">
+                    <b>${escapeHTML(n.title)}</b>
+                    <span class="muted">День ${n.day}</span>
+                </div>
+                <p class="muted">${escapeHTML(n.text)}</p>
+            </div>
+        `).join("")
+        :`<div class="empty">Новостей пока нет.</div>`;
+
+    document.getElementById("homeNews").innerHTML=
+        items.slice(0,5).map(n=>`
+            <div class="list-item">
+                <b>${escapeHTML(n.title)}</b>
+                <div class="muted">${escapeHTML(n.text)}</div>
+            </div>
+        `).join("") || `<div class="empty">Пока тихо.</div>`;
+}
+
+function filterNews(category){
+
+    let arr=state.news;
+
+    if(category!=="all"){
+        arr=arr.filter(x=>x.category===category);
+    }
+
+    document.getElementById("newsList").innerHTML=
+        arr.map(n=>`
+        <div class="list-item">
+            <div class="row">
+                <b>${escapeHTML(n.title)}</b>
+                <span class="muted">День ${n.day}</span>
+            </div>
+            <p class="muted">${escapeHTML(n.text)}</p>
+        </div>
+        `).join("") ||
+        `<div class="empty">Новостей этой категории пока нет.</div>`;
+}
+
+
+/* =========================
+   HOME / STATE
+========================= */
+
+function renderStats(){
+
+    const ids={
+        day:state.day,
+        topBudget:state.budget.toFixed(2),
+        homeBudget:state.budget.toFixed(2),
+        stateBudget:state.budget.toFixed(2),
+
+        topMoney:moneyFormat(state.personalMoney),
+        homeMoney:moneyFormat(state.personalMoney),
+        personalMoney:moneyFormat(state.personalMoney),
+        casinoMoney:moneyFormat(state.personalMoney),
+
+        topPopulation:state.population.toFixed(1),
+        homePopulation:state.population.toFixed(1),
+        statePop:state.population.toFixed(1),
+
+        economyText:Math.round(state.economy),
+        stateEco:Math.round(state.economy),
+
+        trustText:Math.round(state.trust),
+        stateTrust:Math.round(state.trust),
+
+        stabilityText:Math.round(state.stability),
+        stateStability:Math.round(state.stability)
+    };
+
+    Object.entries(ids).forEach(([id,value])=>{
+        const el=document.getElementById(id);
+        if(el)el.textContent=value;
+    });
+
+    const economyBar=document.getElementById("economyBar");
+    const trustBar=document.getElementById("trustBar");
+    const stabilityBar=document.getElementById("stabilityBar");
+
+    if(economyBar)economyBar.style.width=state.economy+"%";
+    if(trustBar)trustBar.style.width=state.trust+"%";
+    if(stabilityBar)stabilityBar.style.width=state.stability+"%";
+}
+
+function renderState(){
+
+    const ministers=[
+        ["👔","Алексей Орлов","Премьер-министр"],
+        ["💰","Мария Волкова","Финансы"],
+        ["🏥","Илья Соколов","Здравоохранение"],
+        ["🏗️","Дмитрий Лебедев","Строительство"]
+    ];
+
+    document.getElementById("ministers").innerHTML=
+        ministers.map(x=>`
+        <div class="list-item person">
+            <div class="avatar">${x[0]}</div>
+            <div>
+                <b>${x[1]}</b>
+                <div class="muted">${x[2]}</div>
+            </div>
+        </div>
+        `).join("");
+}
+
+
+/* =========================
+   EVENTS
+========================= */
+
+const events=[
+
+{
+title:"📈 Рост деловой активности",
+text:"В нескольких городах увеличилось число новых предприятий.",
+choices:[
+["Поддержать предпринимателей",()=>{
+    state.budget-=0.12;
+    state.economy=clamp(state.economy+3);
+    state.trust=clamp(state.trust+1);
+    addNews("economy","Деловая активность растёт","Новые предприятия увеличили активность экономики.");
+}],
+["Ничего не менять",()=>{
+    state.economy=clamp(state.economy+1);
+}]
+]
+},
+
+{
+title:"🏥 Новый медицинский центр",
+text:"Группа регионов предложила открыть современный медицинский центр.",
+choices:[
+["Профинансировать",()=>{
+    state.budget-=0.08;
+    state.trust=clamp(state.trust+3);
+    state.stability=clamp(state.stability+1);
+    addNews("society","Открытие медицинского центра","Государство выделило средства на новый объект.");
+}],
+["Отложить",()=>{
+    state.trust=clamp(state.trust-1);
+}]
+]
+},
+
+{
+title:"🛣️ Состояние дорог",
+text:"Города направили запрос на ремонт транспортной инфраструктуры.",
+choices:[
+["Начать программу",()=>{
+    state.budget-=0.15;
+    state.economy=clamp(state.economy+3);
+    state.stability=clamp(state.stability+2);
+    addNews("economy","Инфраструктурная программа","Начата новая программа развития дорог.");
+}],
+["Перенести на следующий месяц",()=>{
+    state.economy=clamp(state.economy-1);
+}]
+]
+},
+
+{
+title:"🔬 Научный проект",
+text:"Учёные представили перспективный исследовательский проект.",
+choices:[
+["Финансировать",()=>{
+    state.budget-=0.1;
+    state.economy=clamp(state.economy+2);
+    addNews("economy","Новый научный проект","Государство поддержало исследовательскую программу.");
+}],
+["Провести дополнительную экспертизу",()=>{
+    state.trust=clamp(state.trust+1);
+}]
+]
+},
+
+{
+title:"🎓 Образование",
+text:"Университеты предлагают программу обновления оборудования.",
+choices:[
+["Выделить финансирование",()=>{
+    state.budget-=0.09;
+    state.economy=clamp(state.economy+2);
+    state.trust=clamp(state.trust+2);
+    addNews("society","Обновление университетов","Университеты получили финансирование.");
+}],
+["Обсудить позже",()=>{
+    state.trust=clamp(state.trust-1);
+}]
+]
+}
+
+];
+
+let currentEvent=null;
+
+function generateEvent(){
+
+    currentEvent=choice(events);
+
+    renderEvent();
+}
+
+function renderEvent(){
+
+    if(!currentEvent){
+        document.getElementById("eventBox").innerHTML=
+            `<div class="empty">Событий нет.</div>`;
+        return;
+    }
+
+    document.getElementById("eventBox").innerHTML=`
+        <h3>${currentEvent.title}</h3>
+        <p class="muted">${currentEvent.text}</p>
+        <div class="action-list">
+            ${currentEvent.choices.map((c,i)=>
+                `<button class="btn" onclick="chooseEvent(${i})">${c[0]}</button>`
+            ).join("")}
+        </div>
+    `;
+}
+
+function chooseEvent(index){
+
+    if(!currentEvent)return;
+
+    currentEvent.choices[index][1]();
+
+    notify("📰","Решение по событию принято");
+
+    currentEvent=null;
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   STATE ACTIONS
+========================= */
+
+function stateAction(type){
+
+    const actions={
+
+        roads(){
+            state.budget-=0.12;
+            state.economy=clamp(state.economy+2);
+            state.stability=clamp(state.stability+1);
+            addNews("economy","Развитие дорог","Запущена инфраструктурная программа.");
+        },
+
+        hospital(){
+            state.budget-=0.08;
+            state.trust=clamp(state.trust+2);
+            state.stability=clamp(state.stability+1);
+            addNews("society","Новая больница","Открыт новый медицинский объект.");
+        },
+
+        education(){
+            state.budget-=0.07;
+            state.economy=clamp(state.economy+2);
+            state.trust=clamp(state.trust+1);
+            addNews("society","Поддержка образования","Увеличено финансирование образовательной системы.");
+        },
+
+        science(){
+            state.budget-=0.09;
+            state.economy=clamp(state.economy+2);
+            addNews("economy","Поддержка науки","Государство увеличило финансирование исследований.");
+        },
+
+        business(){
+            state.budget-=0.1;
+            state.economy=clamp(state.economy+3);
+            state.trust=clamp(state.trust+1);
+            addNews("business","Поддержка бизнеса","Запущена программа поддержки предприятий.");
+        }
+    };
+
+    if(actions[type]){
+        actions[type]();
+
+        notify("🏛️","Государственное решение выполнено");
+
+        saveGame();
+        renderAll();
+    }
+}
+
+
+/* =========================
+   DECREES
+========================= */
+
+function createDecree(){
+
+    const title=document.getElementById("decreeTitle").value.trim();
+    const text=document.getElementById("decreeText").value.trim();
+    const cost=Number(document.getElementById("decreeCost").value)||0;
+    const trust=Number(document.getElementById("decreeTrust").value)||0;
+
+    if(!title){
+        notify("⚠️","Укажи название указа");
+        return;
+    }
+
+    state.budget-=cost/1000;
+    state.trust=clamp(state.trust+trust);
+
+    addNews(
+        "government",
+        "Подписан указ: "+title,
+        text || "Президент подписал новый указ."
+    );
+
+    document.getElementById("decreeTitle").value="";
+    document.getElementById("decreeText").value="";
+
+    notify("📜","Указ подписан");
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   CABINET
+========================= */
+
+function cabinetMeeting(){
+
+    openModal(`
+        <div class="modal-head">
+            <h2>👔 Совещание кабинета</h2>
+            <button class="btn small" onclick="closeModal()">×</button>
+        </div>
+
+        <p class="muted">Выбери тему совещания.</p>
+
+        <div class="action-list">
+            <button class="btn" onclick="cabinetChoice('economy')">📈 Экономика</button>
+            <button class="btn" onclick="cabinetChoice('construction')">🏗️ Строительство</button>
+            <button class="btn" onclick="cabinetChoice('medicine')">🏥 Медицина</button>
+            <button class="btn" onclick="cabinetChoice('education')">🎓 Образование</button>
+        </div>
+    `);
+}
+
+function cabinetChoice(type){
+
+    closeModal();
+
+    const names={
+        economy:"Экономика",
+        construction:"Строительство",
+        medicine:"Медицина",
+        education:"Образование"
+    };
+
+    state.trust=clamp(state.trust+1);
+
+    addNews(
+        "government",
+        "Совещание правительства",
+        "Проведено совещание по теме: "+names[type]
+    );
+
+    notify("👔","Совещание завершено");
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   FAMILY
+========================= */
+
+function renderFamily(){
+
+    document.getElementById("familyMembers").innerHTML=
+        state.family.members.map(m=>`
+        <div class="list-item person">
+            <div class="avatar">👤</div>
+            <div>
+                <b>${escapeHTML(m.name)}</b>
+                <div class="muted">${escapeHTML(m.role)} · ${m.age} лет</div>
+                <div class="muted">Сейчас: ${escapeHTML(m.activity)}</div>
+                <div class="muted">Настроение: ${m.mood}/100</div>
+            </div>
+        </div>
+        `).join("");
+
+    document.getElementById("familyLove").textContent=Math.round(state.family.love);
+    document.getElementById("familyMood").textContent=Math.round(state.family.mood);
+
+    document.getElementById("familyLoveBar").style.width=state.family.love+"%";
+    document.getElementById("familyMoodBar").style.width=state.family.mood+"%";
+
+    document.getElementById("familyLog").innerHTML=
+        state.family.log.slice(0,15).map(x=>`
+        <div class="list-item">
+            <b>${escapeHTML(x.text)}</b>
+            <div class="muted">День ${x.day}</div>
+        </div>
+        `).join("") ||
+        `<div class="empty">Семейная история только начинается.</div>`;
+}
+
+function familyAction(type){
+
+    const actions={
+        kiss:["💋 Ты поцеловал Елену",4,5],
+        hug:["🤗 Ты обнял Елену",3,4],
+        dinner:["🍽️ Вы поужинали всей семьёй",5,5],
+        walk:["🚶 Вы пошли гулять",4,7],
+        movie:["🎬 Вы вместе посмотрели фильм",3,4],
+        gift:["🎁 Ты подарил семье подарок",6,8]
+    };
+
+    const a=actions[type];
+
+    if(!a)return;
+
+    if(type==="gift")state.personalMoney-=5000;
+
+    state.family.love=clamp(state.family.love+a[1]);
+    state.family.mood=clamp(state.family.mood+a[2]);
+
+    state.family.members.forEach(m=>{
+        m.mood=clamp(m.mood+3);
+        m.activity=type==="walk"?"гуляет":"проводит время с семьёй";
+    });
+
+    state.family.log.unshift({
+        day:state.day,
+        text:a[0]
+    });
+
+    addNews(
+        "family",
+        "Семейное событие",
+        a[0]
+    );
+
+    notify("❤️","Семейное событие");
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   NPC
+========================= */
+
+function renderNPC(){
+
+    document.getElementById("npcList").innerHTML=
+        state.npc.map(n=>`
+        <div class="list-item">
+            <div class="person">
+                <div class="avatar">🤖</div>
+                <div>
+                    <b>${escapeHTML(n.name)}</b>
+                    <div class="muted">${n.age} лет · ${escapeHTML(n.job)}</div>
+                    <div class="muted">Настроение: ${n.mood}/100</div>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="muted">Сейчас: ${escapeHTML(n.activity)}</div>
+
+            <br>
+
+            <button class="btn small" onclick="observeNPC(${n.id})">
+                👁️ Наблюдать
+            </button>
+        </div>
+        `).join("");
+
+    document.getElementById("npcFeed").innerHTML=
+        state.npcFeed.slice(0,20).map(x=>`
+        <div class="list-item">
+            <b>${escapeHTML(x.text)}</b>
+            <div class="muted">День ${x.day}</div>
+        </div>
+        `).join("") ||
+        `<div class="empty">NPC пока не начали общение.</div>`;
+}
+
+function npcLife(){
+
+    if(state.npc.length<2)return;
+
+    const a=choice(state.npc);
+    let b=state.npc.find(x=>x.id===a.friend);
+
+    if(!b){
+        b=choice(state.npc.filter(x=>x.id!==a.id));
+    }
+
+    const events=[
+        `${a.name} встретил ${b.name} и они поговорили.`,
+        `${a.name} рассказал ${b.name} о своей работе.`,
+        `${a.name} спросил ${b.name}, как прошёл день.`,
+        `${a.name} и ${b.name} обсуждали новости.`,
+        `${a.name} предложил ${b.name} встретиться позже.`,
+        `${a.name} помог ${b.name} с делом.`
+    ];
+
+    const text=choice(events);
+
+    state.npcFeed.unshift({
+        day:state.day,
+        text
+    });
+
+    a.mood=clamp(a.mood+random(-3,4));
+    b.mood=clamp(b.mood+random(-2,5));
+
+    a.activity=choice(["работает","отдыхает","разговаривает","идёт домой","покупает товары"]);
+    b.activity=choice(["работает","отдыхает","разговаривает","идёт домой","покупает товары"]);
+
+    state.npcFeed=state.npcFeed.slice(0,40);
+
+    addNews(
+        "world",
+        "Жизнь NPC",
+        text
+    );
+}
+
+function openNPCForm(){
+
+    openModal(`
+        <div class="modal-head">
+            <h2>🤖 Новый NPC</h2>
+            <button class="btn small" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="stack">
+
+            <div>
+                <label>Имя</label>
+                <input id="npcName" placeholder="Например: Павел">
+            </div>
+
+            <div>
+                <label>Возраст</label>
+                <input id="npcAge" type="number" value="30">
+            </div>
+
+            <div>
+                <label>Работа</label>
+                <input id="npcJob" placeholder="Врач, водитель, продавец...">
+            </div>
+
+            <button class="btn primary" onclick="createNPC()">Создать NPC</button>
+        </div>
+    `);
+}
+
+function createNPC(){
+
+    const name=document.getElementById("npcName").value.trim();
+    const age=Number(document.getElementById("npcAge").value)||30;
+    const job=document.getElementById("npcJob").value.trim()||"житель";
+
+    if(!name){
+        notify("⚠️","Укажи имя NPC");
+        return;
+    }
+
+    state.npc.push({
+        id:Date.now(),
+        name,
+        age,
+        job,
+        money:random(30000,150000),
+        mood:random(55,85),
+        friend:null,
+        activity:"осматривается в новом городе"
+    });
+
+    closeModal();
+
+    notify("🤖","Новый NPC появился в мире");
+
+    addNews("world","Новый житель","В мире появился новый NPC: "+name);
+
+    saveGame();
+    renderAll();
+}
+
+function observeNPC(id){
+
+    const n=state.npc.find(x=>x.id===id);
+
+    if(!n)return;
+
+    openModal(`
+        <div class="modal-head">
+            <h2>👁️ ${escapeHTML(n.name)}</h2>
+            <button class="btn small" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="list">
+            <div class="list-item">Возраст: <b>${n.age}</b></div>
+            <div class="list-item">Работа: <b>${escapeHTML(n.job)}</b></div>
+            <div class="list-item">Деньги: <b>₽ ${moneyFormat(n.money)}</b></div>
+            <div class="list-item">Настроение: <b>${n.mood}/100</b></div>
+            <div class="list-item">Сейчас: <b>${escapeHTML(n.activity)}</b></div>
+        </div>
+    `);
+}
+
+
+/* =========================
+   BUSINESS
+========================= */
+
+function renderBusiness(){
+
+    const value=state.businesses.reduce((a,b)=>a+b.value,0);
+    const income=state.businesses.reduce((a,b)=>a+b.income,0);
+
+    document.getElementById("businessValue").textContent=moneyFormat(value);
+    document.getElementById("businessIncome").textContent=moneyFormat(income);
+    document.getElementById("businessCount").textContent=state.businesses.length;
+
+    document.getElementById("businessList").innerHTML=
+        state.businesses.map((b,i)=>`
+        <div class="card">
+            <h3>🏢 ${escapeHTML(b.name)}</h3>
+            <div class="muted">${escapeHTML(b.type)}</div>
+
+            <br>
+
+            <div>Стоимость: <b>₽ ${moneyFormat(b.value)}</b></div>
+            <div>Доход/день: <b class="green">₽ ${moneyFormat(b.income)}</b></div>
+            <div>Сотрудники: <b>${b.employees}</b></div>
+            <div>Уровень: <b>${b.level}</b></div>
+
+            <br>
+
+            <button class="btn small" onclick="upgradeBusiness(${i})">
+                ⬆️ Развить
+            </button>
+
+            <button class="btn small" onclick="sellBusiness(${i})">
+                💰 Продать
+            </button>
+        </div>
+        `).join("") ||
+        `<div class="card"><div class="empty">У тебя пока нет бизнеса.</div></div>`;
+}
+
+function openBusinessForm(){
+
+    openModal(`
+        <div class="modal-head">
+            <h2>💼 Создать бизнес</h2>
+            <button class="btn small" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="stack">
+
+            <div>
+                <label>Название</label>
+                <input id="bizName" placeholder="Например: Kartaviy Logistics">
+            </div>
+
+            <div>
+                <label>Тип</label>
+                <select id="bizType">
+                    <option>Магазин</option>
+                    <option>Маркетплейс</option>
+                    <option>Логистика</option>
+                    <option>Ресторан</option>
+                    <option>Строительная компания</option>
+                    <option>Завод</option>
+                    <option>Такси</option>
+                    <option>Гостиница</option>
+                    <option>IT-компания</option>
+                    <option>Медиакомпания</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Стартовый капитал</label>
+                <input id="bizCost" type="number" value="100000">
+            </div>
+
+            <button class="btn primary" onclick="createBusiness()">Создать</button>
+
+        </div>
+    `);
+}
+
+function createBusiness(){
+
+    const name=document.getElementById("bizName").value.trim();
+    const type=document.getElementById("bizType").value;
+    const cost=Number(document.getElementById("bizCost").value)||0;
+
+    if(!name){
+        notify("⚠️","Укажи название бизнеса");
+        return;
+    }
+
+    if(cost<=0 || cost>state.personalMoney){
+        notify("💰","Недостаточно личных денег");
+        return;
+    }
+
+    state.personalMoney-=cost;
+
+    state.businesses.push({
+        name,
+        type,
+        value:cost,
+        income:Math.round(cost*0.02),
+        employees:random(2,10),
+        level:1
+    });
+
+    closeModal();
+
+    addNews(
+        "business",
+        "Создан новый бизнес",
+        `Открыто предприятие «${name}».`
+    );
+
+    notify("💼","Бизнес создан");
+
+    saveGame();
+    renderAll();
+}
+
+function upgradeBusiness(i){
+
+    const b=state.businesses[i];
+
+    const cost=Math.round(b.value*.25);
+
+    if(state.personalMoney<cost){
+        notify("💰","Недостаточно денег для развития");
+        return;
+    }
+
+    state.personalMoney-=cost;
+    b.value+=cost;
+    b.income=Math.round(b.income*1.25);
+    b.employees+=random(1,4);
+    b.level++;
+
+    notify("⬆️","Бизнес развит");
+
+    addNews(
+        "business",
+        "Развитие предприятия",
+        `Компания «${b.name}» перешла на уровень ${b.level}.`
+    );
+
+    saveGame();
+    renderAll();
+}
+
+function sellBusiness(i){
+
+    const b=state.businesses[i];
+
+    if(!confirm(`Продать ${b.name}?`))return;
+
+    const price=Math.round(b.value*.8);
+
+    state.personalMoney+=price;
+
+    addNews(
+        "business",
+        "Продажа бизнеса",
+        `Предприятие «${b.name}» продано.`
+    );
+
+    state.businesses.splice(i,1);
+
+    notify("💰","Бизнес продан");
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   MARKET
+========================= */
+
+function renderMarket(){
+
+    document.getElementById("marketList").innerHTML=
+        state.products.map((p,i)=>`
+        <div class="list-item">
+            <h3>📦 ${escapeHTML(p.name)}</h3>
+            <div class="muted">
+                Бренд: ${escapeHTML(p.brand)}
+            </div>
+            <div class="muted">
+                Производитель: ${escapeHTML(p.country)}
+            </div>
+
+            <br>
+
+            <div>Цена: <b>₽ ${moneyFormat(p.price)}</b></div>
+            <div>Качество: <b>${p.quality}/100</b></div>
+            <div>Спрос: <b>${p.demand}/100</b></div>
+
+            <br>
+
+            <button class="btn small" onclick="buyProduct(${i})">
+                🛒 Купить
+            </button>
+        </div>
+        `).join("");
+}
+
+function buyProduct(i){
+
+    const p=state.products[i];
+
+    if(state.personalMoney<p.price){
+        notify("💰","Не хватает личных денег");
+        return;
+    }
+
+    state.personalMoney-=p.price;
+
+    p.demand=clamp(p.demand+1);
+
+    addNews(
+        "business",
+        "Покупка товара",
+        `Куплен товар «${p.name}».`
+    );
+
+    notify("🛒","Покупка совершена");
+
+    saveGame();
+    renderAll();
+}
+
+function shop(name){
+
+    notify("🛒",name+" открыт");
+
+    addNews(
+        "business",
+        "Маркетплейс",
+        `Ты открыл игровой раздел «${name}».`
+    );
+}
+
+
+/* =========================
+   WORLD
+========================= */
+
+function renderWorld(){
+
+    document.getElementById("countries").innerHTML=
+        state.countries.map(c=>`
+        <div class="card">
+            <h3>🌍 ${escapeHTML(c.name)}</h3>
+
+            <div>Население: <b>${c.population} млн</b></div>
+            <div>Экономика: <b>${c.economy}/100</b></div>
+            <div>Отношения: <b>${c.relation}/100</b></div>
+
+            <br>
+
+            <div class="muted">
+                Основные товары:
+                ${c.goods.map(x=>escapeHTML(x)).join(", ")}
+            </div>
+
+            <br>
+
+            <button class="btn small" onclick="countryAction('${escapeHTML(c.name)}','trade')">
+                🤝 Торговать
+            </button>
+
+            <button class="btn small" onclick="countryAction('${escapeHTML(c.name)}','talk')">
+                💬 Переговоры
+            </button>
+        </div>
+        `).join("");
+}
+
+function countryAction(name,type){
+
+    const c=state.countries.find(x=>x.name===name);
+
+    if(!c)return;
+
+    if(type==="trade"){
+
+        state.budget+=0.03;
+        state.economy=clamp(state.economy+1);
+        c.relation=clamp(c.relation+3);
+
+        notify("🤝","Торговая сделка заключена");
+
+        addNews(
+            "world",
+            "Новая торговая сделка",
+            `Заключена игровая торговая сделка с ${name}.`
+        );
+    }
+
+    if(type==="talk"){
+
+        c.relation=clamp(c.relation+2);
+
+        notify("💬","Переговоры завершены");
+
+        addNews(
+            "world",
+            "Дипломатические переговоры",
+            `Проведены переговоры с ${name}.`
+        );
+    }
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   WAR
+========================= */
+
+function renderWar(){
+
+    document.getElementById("warStatus").textContent=state.war.status;
+    document.getElementById("warSupply").textContent=state.war.supply;
+    document.getElementById("warMorale").textContent=state.war.morale;
+}
+
+function warAction(type){
+
+    if(type==="peace"){
+
+        state.war.active=false;
+        state.war.status="Мир";
+        state.war.supply=100;
+        state.war.morale=70;
+
+        notify("🤝","Мирный договор заключён");
+
+        addNews(
+            "world",
+            "Мирный договор",
+            "В игровом мире конфликт завершён дипломатическим соглашением."
+        );
+
+        saveGame();
+        renderAll();
+        return;
+    }
+
+    if(type==="truce"){
+
+        state.war.status="Перемирие";
+        state.war.supply=clamp(state.war.supply+5);
+        state.war.morale=clamp(state.war.morale+4);
+
+        notify("🕊️","Предложено перемирие");
+
+        addNews(
+            "world",
+            "Перемирие",
+            "Стороны согласились временно прекратить конфликт."
+        );
+
+        saveGame();
+        renderAll();
+        return;
+    }
+
+    if(type==="retreat"){
+
+        state.war.active=false;
+        state.war.status="Отступление";
+        state.war.supply=clamp(state.war.supply+10);
+        state.war.morale=clamp(state.war.morale-4);
+
+        notify("🔄","Войска отведены");
+
+        saveGame();
+        renderAll();
+        return;
+    }
+
+    state.war.active=true;
+
+    if(type==="attack"){
+
+        state.war.status="Наступление";
+        state.war.supply=clamp(state.war.supply-random(5,12));
+        state.war.morale=clamp(state.war.morale+random(-3,5));
+        state.budget-=0.12;
+
+        addNews(
+            "world",
+            "Игровой конфликт: наступление",
+            "В симуляторе началась новая фаза конфликта."
+        );
+    }
+
+    if(type==="defense"){
+
+        state.war.status="Оборона";
+        state.war.supply=clamp(state.war.supply-random(2,6));
+        state.war.morale=clamp(state.war.morale+3);
+
+        addNews(
+            "world",
+            "Оборонительная операция",
+            "Система конфликта перешла в оборонительную фазу."
+        );
+    }
+
+    if(type==="capture"){
+
+        state.war.status="Захват региона";
+        state.war.supply=clamp(state.war.supply-random(8,15));
+        state.war.morale=clamp(state.war.morale+random(-4,4));
+        state.budget-=0.15;
+
+        addNews(
+            "world",
+            "Изменение территории",
+            "В игровом мире изменился контроль над регионом."
+        );
+    }
+
+    notify("⚔️","Действие в конфликте выполнено");
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   FLEET
+========================= */
+
+function renderFleet(){
+
+    document.getElementById("fleetList").innerHTML=
+        state.fleet.map((car,i)=>`
+        <div class="card">
+            <h3>🚗 ${escapeHTML(car.name)}</h3>
+
+            <div>Цена: <b>₽ ${moneyFormat(car.price)}</b></div>
+            <div>Качество: <b>${car.quality}/100</b></div>
+            <div>Состояние: <b>${car.condition}/100</b></div>
+            <div>Пробег: <b>${moneyFormat(car.mileage)} км</b></div>
+
+            <br>
+
+            <button class="btn small" onclick="repairCar(${i})">
+                🔧 Обслужить
+            </button>
+
+            <button class="btn small" onclick="sellCar(${i})">
+                💰 Продать
+            </button>
+        </div>
+        `).join("") ||
+        `<div class="card"><div class="empty">Автомобилей пока нет.</div></div>`;
+}
+
+function openCarForm(){
+
+    openModal(`
+        <div class="modal-head">
+            <h2>🚗 Покупка автомобиля</h2>
+            <button class="btn small" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="stack">
+
+            <div>
+                <label>Модель</label>
+                <input id="carName" placeholder="Например: Volta Sedan">
+            </div>
+
+            <div>
+                <label>Цена</label>
+                <input id="carPrice" type="number" value="1500000">
+            </div>
+
+            <div>
+                <label>Качество</label>
+                <input id="carQuality" type="number" min="1" max="100" value="80">
+            </div>
+
+            <button class="btn primary" onclick="buyCar()">Купить</button>
+
+        </div>
+    `);
+}
+
+function buyCar(){
+
+    const name=document.getElementById("carName").value.trim()||"Автомобиль";
+    const price=Number(document.getElementById("carPrice").value)||0;
+    const quality=clamp(Number(document.getElementById("carQuality").value)||80);
+
+    if(price<=0 || price>state.personalMoney){
+        notify("💰","Недостаточно денег");
+        return;
+    }
+
+    state.personalMoney-=price;
+
+    state.fleet.push({
+        name,
+        price,
+        quality,
+        condition:100,
+        mileage:0
+    });
+
+    closeModal();
+
+    notify("🚗","Автомобиль куплен");
+
+    addNews(
+        "personal",
+        "Новая машина",
+        `В автопарке появился автомобиль «${name}».`
+    );
+
+    saveGame();
+    renderAll();
+}
+
+function repairCar(i){
+
+    const car=state.fleet[i];
+
+    if(state.personalMoney<5000){
+        notify("💰","Не хватает денег");
+        return;
+    }
+
+    state.personalMoney-=5000;
+    car.condition=100;
+
+    notify("🔧","Автомобиль обслужен");
+
+    saveGame();
+    renderAll();
+}
+
+function sellCar(i){
+
+    const car=state.fleet[i];
+
+    if(!confirm("Продать автомобиль?"))return;
+
+    const value=Math.round(
+        car.price*
+        (car.condition/100)*
+        .75
+    );
+
+    state.personalMoney+=value;
+    state.fleet.splice(i,1);
+
+    notify("💰","Автомобиль продан");
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   PERSONAL MONEY
+========================= */
+
+function spendMoney(amount,title){
+
+    if(state.personalMoney<amount){
+        notify("💰","Недостаточно личных денег");
+        return;
+    }
+
+    state.personalMoney-=amount;
+
+    addNews(
+        "personal",
+        "Личная покупка",
+        `${title}: потрачено ₽ ${moneyFormat(amount)}.`
+    );
+
+    notify("💸","Покупка: "+title);
+
+    saveGame();
+    renderAll();
+}
+
+function buyLarge(title,cost){
+
+    if(state.personalMoney<cost){
+        notify("💰","Для этой покупки пока не хватает денег");
+        return;
+    }
+
+    state.personalMoney-=cost;
+
+    addNews(
+        "personal",
+        "Крупная покупка",
+        `Приобретено: ${title}.`
+    );
+
+    notify("🏠","Покупка совершена");
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   CASINO
+========================= */
+
+function casinoSlots(){
+
+    const bet=1000;
+
+    if(state.personalMoney<bet){
+        notify("🎰","Недостаточно виртуальных денег");
+        return;
+    }
+
+    state.personalMoney-=bet;
+
+    const roll=random(1,100);
+    let prize=0;
+
+    if(roll<=4) prize=10000;
+    else if(roll<=15) prize=4000;
+    else if(roll<=40) prize=1500;
+
+    state.personalMoney+=prize;
+
+    casinoResult(
+        `🎰 Слоты: ставка ${moneyFormat(bet)} ₽`,
+        prize
+    );
+}
+
+function casinoDice(){
+
+    const bet=1000;
+
+    if(state.personalMoney<bet){
+        notify("🎲","Недостаточно виртуальных денег");
+        return;
+    }
+
+    state.personalMoney-=bet;
+
+    const a=random(1,6);
+    const b=random(1,6);
+
+    const prize=a+b>=10?5000:0;
+
+    state.personalMoney+=prize;
+
+    casinoResult(
+        `🎲 Выпало ${a} + ${b}`,
+        prize
+    );
+}
+
+function casinoCards(){
+
+    const bet=2000;
+
+    if(state.personalMoney<bet){
+        notify("🃏","Недостаточно виртуальных денег");
+        return;
+    }
+
+    state.personalMoney-=bet;
+
+    const player=random(1,13);
+    const dealer=random(1,13);
+
+    let prize=0;
+
+    if(player>dealer)prize=5000;
+    if(player===dealer)prize=2000;
+
+    state.personalMoney+=prize;
+
+    casinoResult(
+        `🃏 Твоя карта ${player}, карта соперника ${dealer}`,
+        prize
+    );
+}
+
+function casinoResult(text,prize){
+
+    state.casinoLog.unshift({
+        day:state.day,
+        text,
+        prize
+    });
+
+    if(prize>0){
+        notify("🎉","Выигрыш: ₽ "+moneyFormat(prize));
+    }else{
+        notify("🎰","На этот раз без выигрыша");
+    }
+
+    saveGame();
+    renderAll();
+}
+
+function renderCasino(){
+
+    document.getElementById("casinoLog").innerHTML=
+        state.casinoLog.slice(0,20).map(x=>`
+        <div class="list-item">
+            <b>${escapeHTML(x.text)}</b>
+            <div class="${x.prize>0?'green':'red'}">
+                ${x.prize>0?"+":"-"} ₽ ${moneyFormat(x.prize || 1000)}
+            </div>
+            <div class="muted">День ${x.day}</div>
+        </div>
+        `).join("") ||
+        `<div class="empty">История пуста.</div>`;
+}
+
+
+/* =========================
+   LAPTOP
+========================= */
+
+function laptopPage(type){
+
+    const titles={
+        mail:"📧 Почта",
+        messages:"💬 Сообщения",
+        news:"📰 Новости",
+        bank:"🏦 Банк",
+        shops:"🛒 Магазины",
+        documents:"📋 Документы",
+        government:"🏛️ Правительство",
+        notifications:"🔔 Уведомления"
+    };
+
+    document.getElementById("laptopTitle").textContent=titles[type]||"💻 Ноутбук";
+
+    let html="";
+
+    if(type==="mail"){
+        html=`
+        <div class="list-item">
+            <b>📧 Кабинет правительства</b>
+            <p class="muted">Новое приглашение на совещание.</p>
+        </div>
+        <div class="list-item">
+            <b>📧 Семья</b>
+            <p class="muted">В семье появилось новое сообщение.</p>
+        </div>`;
+    }
+
+    if(type==="messages"){
+        html=state.npcFeed.slice(0,10).map(x=>`
+            <div class="list-item">
+                💬 ${escapeHTML(x.text)}
+            </div>
+        `).join("") || `<div class="empty">Новых сообщений нет.</div>`;
+    }
+
+    if(type==="news"){
+        html=state.news.slice(0,10).map(x=>`
+            <div class="list-item">
+                <b>${escapeHTML(x.title)}</b>
+                <div class="muted">${escapeHTML(x.text)}</div>
+            </div>
+        `).join("");
+    }
+
+    if(type==="bank"){
+        html=`
+        <div class="list-item">
+            <b>🏦 Личный счёт</b>
+            <div class="big-number">₽ ${moneyFormat(state.personalMoney)}</div>
+        </div>
+        <div class="list-item">
+            <b>🏛️ Государственный бюджет</b>
+            <div class="big-number">${state.budget.toFixed(2)} трлн ₽</div>
+        </div>`;
+    }
+
+    if(type==="shops"){
+        html=`
+        <div class="list-item">🟣 Ozon — маркетплейс</div>
+        <div class="list-item">🟠 Wildberries — маркетплейс</div>
+        <div class="list-item">🚚 Транспорт — логистика</div>`;
+    }
+
+    if(type==="documents"){
+        html=`
+        <div class="list-item">📜 Государственные указы</div>
+        <div class="list-item">📋 Документы правительства</div>
+        <div class="list-item">📄 Личные документы</div>`;
+    }
+
+    if(type==="government"){
+        html=`
+        <div class="list-item">
+            <b>👔 Правительство</b>
+            <p class="muted">Следующее совещание может появиться автоматически.</p>
+        </div>`;
+    }
+
+    if(type==="notifications"){
+        html=state.notifications.map(x=>`
+            <div class="list-item">
+                <b>${x.icon} ${escapeHTML(x.text)}</b>
+                <div class="muted">День ${x.day} · ${x.time}</div>
+            </div>
+        `).join("") || `<div class="empty">Уведомлений нет.</div>`;
+    }
+
+    document.getElementById("laptopContent").innerHTML=html;
+}
+
+
+/* =========================
+   OBSERVATION
+========================= */
+
+function observe(type){
+
+    let html="";
+
+    if(type==="npc"){
+
+        const n=choice(state.npc);
+
+        html=`
+        <div class="list-item">
+            <h3>🤖 ${escapeHTML(n.name)}</h3>
+            <p>Сейчас ${escapeHTML(n.activity)}.</p>
+            <p class="muted">
+                Настроение ${n.mood}/100 ·
+                деньги ₽ ${moneyFormat(n.money)}
+            </p>
+        </div>`;
+    }
+
+    if(type==="family"){
+
+        html=`
+        <div class="list-item">
+            ❤️ Семья проводит день вместе.
+            <br>
+            Близость: ${Math.round(state.family.love)}/100
+            <br>
+            Настроение: ${Math.round(state.family.mood)}/100
+        </div>`;
+    }
+
+    if(type==="business"){
+
+        const b=choice(state.businesses);
+
+        html=b?
+        `<div class="list-item">
+            <h3>💼 ${escapeHTML(b.name)}</h3>
+            <p>${escapeHTML(b.type)}</p>
+            <p>Сотрудники: ${b.employees}</p>
+            <p>Доход: ₽ ${moneyFormat(b.income)}/день</p>
+        </div>`:
+        `<div class="empty">Бизнесов пока нет.</div>`;
+    }
+
+    if(type==="country"){
+
+        const c=choice(state.countries);
+
+        html=`
+        <div class="list-item">
+            <h3>🌍 ${escapeHTML(c.name)}</h3>
+            <p>Население: ${c.population} млн</p>
+            <p>Экономика: ${c.economy}/100</p>
+            <p>Отношения: ${c.relation}/100</p>
+        </div>`;
+    }
+
+    if(type==="city"){
+
+        html=`
+        <div class="list-item">
+            <h3>🏙️ Центральный город</h3>
+            <p>Люди работают, ходят по магазинам, ездят на машинах и общаются.</p>
+            <p class="muted">
+                Несколько NPC сейчас находятся в городе.
+            </p>
+        </div>`;
+    }
+
+    document.getElementById("observeResult").innerHTML=html;
+}
+
+function observeNPC(id){
+
+    const n=state.npc.find(x=>x.id===id);
+
+    if(!n)return;
+
+    showSection("observe");
+
+    document.getElementById("observeResult").innerHTML=`
+        <div class="list-item">
+            <h2>👁️ ${escapeHTML(n.name)}</h2>
+            <p>Возраст: ${n.age}</p>
+            <p>Работа: ${escapeHTML(n.job)}</p>
+            <p>Настроение: ${n.mood}/100</p>
+            <p>Деньги: ₽ ${moneyFormat(n.money)}</p>
+            <p>Сейчас: ${escapeHTML(n.activity)}</p>
+        </div>
+    `;
+}
+
+
+/* =========================
+   CUSTOM ACTIONS
+========================= */
+
+function openCustomAction(context="general"){
+
+    openModal(`
+        <div class="modal-head">
+            <h2>➕ Создать действие</h2>
+            <button class="btn small" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="stack">
+
+            <div>
+                <label>Название действия</label>
+                <input id="actionName" placeholder="Например: Позвонить другу">
+            </div>
+
+            <div>
+                <label>Раздел</label>
+                <select id="actionContext">
+                    <option value="${context}">${contextName(context)}</option>
+                    <option value="general">Общее</option>
+                    <option value="state">Государство</option>
+                    <option value="family">Семья</option>
+                    <option value="npc">NPC</option>
+                    <option value="business">Бизнес</option>
+                    <option value="world">Мир</option>
+                    <option value="personal">Личное</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Описание</label>
+                <textarea id="actionDescription"
+                    placeholder="Что происходит после нажатия?"></textarea>
+            </div>
+
+            <div class="form-grid">
+
+                <div>
+                    <label>Стоимость, ₽</label>
+                    <input id="actionCost" type="number" value="0">
+                </div>
+
+                <div>
+                    <label>Изменение доверия</label>
+                    <input id="actionTrust" type="number" value="0">
+                </div>
+
+                <div>
+                    <label>Изменение экономики</label>
+                    <input id="actionEconomy" type="number" value="0">
+                </div>
+
+                <div>
+                    <label>Изменение близости семьи</label>
+                    <input id="actionLove" type="number" value="0">
+                </div>
+
+            </div>
+
+            <button class="btn primary" onclick="createCustomAction()">
+                Создать действие
+            </button>
+
+        </div>
+    `);
+}
+
+function contextName(c){
+
+    const x={
+        general:"Общее",
+        state:"Государство",
+        family:"Семья",
+        npc:"NPC",
+        business:"Бизнес",
+        world:"Мир",
+        personal:"Личное"
+    };
+
+    return x[c]||"Общее";
+}
+
+function createCustomAction(){
+
+    const name=document.getElementById("actionName").value.trim();
+
+    if(!name){
+        notify("⚠️","Напиши название действия");
+        return;
+    }
+
+    const action={
+        id:Date.now(),
+        name,
+        context:document.getElementById("actionContext").value,
+        description:document.getElementById("actionDescription").value.trim() || "Действие выполнено.",
+        cost:Number(document.getElementById("actionCost").value)||0,
+        trust:Number(document.getElementById("actionTrust").value)||0,
+        economy:Number(document.getElementById("actionEconomy").value)||0,
+        love:Number(document.getElementById("actionLove").value)||0
+    };
+
+    state.customActions.push(action);
+
+    closeModal();
+
+    notify("➕","Новое действие создано");
+
+    saveGame();
+    renderAll();
+}
+
+function runCustomAction(id){
+
+    const a=state.customActions.find(x=>x.id===id);
+
+    if(!a)return;
+
+    if(a.cost>state.personalMoney){
+        notify("💰","Не хватает личных денег");
+        return;
+    }
+
+    state.personalMoney-=a.cost;
+
+    state.trust=clamp(state.trust+a.trust);
+    state.economy=clamp(state.economy+a.economy);
+    state.family.love=clamp(state.family.love+a.love);
+
+    addNews(
+        a.context==="family"?"family":"personal",
+        a.name,
+        a.description
+    );
+
+    notify("✨",a.name);
+
+    saveGame();
+    renderAll();
+}
+
+function deleteCustomAction(id){
+
+    if(!confirm("Удалить это действие?"))return;
+
+    state.customActions=
+        state.customActions.filter(x=>x.id!==id);
+
+    saveGame();
+    renderAll();
+}
+
+function renderCustomActions(){
+
+    const list=document.getElementById("customActionsList");
+
+    list.innerHTML=
+        state.customActions.map(a=>`
+        <div class="card">
+
+            <h3>✨ ${escapeHTML(a.name)}</h3>
+
+            <div class="muted">
+                Раздел: ${contextName(a.context)}
+            </div>
+
+            <p class="muted">${escapeHTML(a.description)}</p>
+
+            <div>
+                Стоимость:
+                <b>₽ ${moneyFormat(a.cost)}</b>
+            </div>
+
+            <div class="muted">
+                Доверие ${a.trust >= 0 ? "+" : ""}${a.trust}
+                · Экономика ${a.economy >= 0 ? "+" : ""}${a.economy}
+                · Семья ${a.love >= 0 ? "+" : ""}${a.love}
+            </div>
+
+            <br>
+
+            <button class="btn primary small"
+                onclick="runCustomAction(${a.id})">
+                ▶️ Выполнить
+            </button>
+
+            <button class="btn red small"
+                onclick="deleteCustomAction(${a.id})">
+                🗑️ Удалить
+            </button>
+
+        </div>
+        `).join("") ||
+        `<div class="card"><div class="empty">Ты ещё не создал собственных действий.</div></div>`;
+}
+
+
+/* =========================
+   AUTONOMOUS WORLD
+========================= */
+
+function autonomousWorld(){
+
+    /* NPC */
+
+    npcLife();
+
+    /* Family */
+
+    if(Math.random()<0.55){
+
+        const familyEvents=[
+            "Елена приготовила ужин.",
+            "Семья обсудила планы на выходные.",
+            "Максим рассказал, как прошёл день.",
+            "Елена решила немного отдохнуть.",
+            "Семья вышла на небольшую прогулку."
+        ];
+
+        const text=choice(familyEvents);
+
+        state.family.log.unshift({
+            day:state.day,
+            text:text
+        });
+
+        state.family.mood=clamp(
+            state.family.mood+random(-2,3)
+        );
+
+        state.family.log=
+            state.family.log.slice(0,30);
+    }
+
+    /* Businesses */
+
+    state.businesses.forEach(b=>{
+
+        b.value+=Math.round(b.income*.05);
+
+        if(Math.random()<.2){
+            b.employees++;
+        }
+    });
+
+    /* Cars */
+
+    state.fleet.forEach(car=>{
+        car.mileage+=random(5,40);
+        car.condition=clamp(
+            car.condition-random(0,1)
+        );
+    });
+
+    /* Countries */
+
+    state.countries.forEach(c=>{
+        c.economy=clamp(
+            c.economy+random(-1,1)
+        );
+
+        c.relation=clamp(
+            c.relation+random(-2,2)
+        );
+    });
+
+    /* Products */
+
+    state.products.forEach(p=>{
+        p.demand=clamp(
+            p.demand+random(-3,3)
+        );
+    });
+
+    /* Economy */
+
+    state.economy=clamp(
+        state.economy+
+        (Math.random()<.5?1:-1)
+    );
+
+    state.trust=clamp(
+        state.trust+
+        random(-1,1)
+    );
+
+    state.stability=clamp(
+        state.stability+
+        random(-1,1)
+    );
+
+}
+
+
+/* =========================
+   NEXT DAY
+========================= */
+
+function nextDay(){
+
+    state.day++;
+
+    /* Daily state income */
+
+    const income=
+        0.12+
+        state.economy/1000+
+        state.stability/2000;
+
+    state.budget+=income;
+
+    document.getElementById("dailyIncome").textContent=
+        income.toFixed(2);
+
+    /* Population */
+
+    state.population+=
+        (state.economy-50)/10000;
+
+    /* Business income */
+
+    const businessIncome=
+        state.businesses.reduce(
+            (sum,b)=>sum+b.income,0
+        );
+
+    state.personalMoney+=businessIncome;
+
+    /* World lives */
+
+    autonomousWorld();
+
+    /* Random event */
+
+    generateEvent();
+
+    /* Automatic news */
+
+    const automaticNews=[
+        ["world","Новости городов","В городах прошёл обычный рабочий день."],
+        ["economy","Рынок изменился","Спрос на несколько товаров изменился."],
+        ["world","Мировые новости","В соседних странах произошли новые события."],
+        ["business","Бизнес-новости","Несколько компаний изменили планы развития."],
+        ["society","Новости общества","Жители городов проводят обычный день."]
+    ];
+
+    const n=choice(automaticNews);
+
+    addNews(n[0],n[1],n[2]);
+
+    /* Automatic notification */
+
+    const notices=[
+        "Пришло новое сообщение.",
+        "Правительство запросило внимание.",
+        "Изменились цены на рынке.",
+        "NPC обсуждают последние новости.",
+        "Семья прислала сообщение.",
+        "На одном из предприятий произошли изменения."
+    ];
+
+    notify("🔔",choice(notices));
+
+    saveGame();
+    renderAll();
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+function openModal(html){
+
+    document.getElementById("modal").innerHTML=html;
+    document.getElementById("modalBg").classList.add("show");
+}
+
+function closeModal(){
+
+    document.getElementById("modalBg").classList.remove("show");
+}
+
+function closeModalOutside(e){
+
+    if(e.target.id==="modalBg"){
+        closeModal();
+    }
+}
+
+
+/* =========================
+   RENDER ALL
+========================= */
+
+function renderAll(){
+
+    renderStats();
+    renderState();
+    renderFamily();
+    renderNPC();
+    renderBusiness();
+    renderMarket();
+    renderWorld();
+    renderWar();
+    renderFleet();
+    renderCasino();
+    renderNews();
+    renderCustomActions();
+
+    const hn=document.getElementById("homeNotifications");
+
+    if(hn){
+
+        hn.innerHTML=
+            state.notifications.slice(0,7).map(n=>`
+            <div class="list-item">
+                <b>${n.icon} ${escapeHTML(n.text)}</b>
+                <div class="muted">
+                    День ${n.day} · ${n.time}
+                </div>
+            </div>
+            `).join("") ||
+            `<div class="empty">Уведомлений нет.</div>`;
+    }
+
+    renderEvent();
+}
+
+
+/* =========================
+   INITIAL WORLD
+========================= */
+
+if(state.news.length===0){
+
+    addNews(
+        "world",
+        "Мир запущен",
+        "Государство начало новый игровой цикл."
+    );
+
+    addNews(
+        "government",
+        "Первый день президента",
+        "Новый президент приступил к работе."
+    );
+}
+
+if(state.npcFeed.length===0){
+
+    state.npcFeed.unshift({
+        day:state.day,
+        text:"Алексей познакомился с Мариной."
+    });
+
+    state.npcFeed.unshift({
+        day:state.day,
+        text:"Игорь обсуждает новый бизнес с Сергеем."
+    });
+}
+
+if(state.family.log.length===0){
+
+    state.family.log.unshift({
+        day:state.day,
+        text:"Семья проснулась и начала новый день."
+    });
+}
+
+
+/* =========================
+   AUTO EVENTS
+========================= */
+
+setInterval(()=>{
+
+    /* Small autonomous event every ~35 sec */
+
+    if(Math.random()<0.7){
+
+        const messages=[
+            "NPC встретились в городе.",
+            "На рынке изменился спрос.",
+            "Семья обсуждает планы.",
+            "Одно из предприятий наняло сотрудника.",
+            "В городе открылась новая торговая точка.",
+            "Кто-то из NPC отправился домой.",
+            "Мировые новости повлияли на настроение жителей."
+        ];
+
+        notify("🌐",choice(messages));
+
+        autonomousWorld();
+        saveGame();
+        renderAll();
+    }
+
+},35000);
+
+
+/* =========================
+   START
+========================= */
+
+renderAll();
+showSection("home");
+
+</script>
+
+</body>
+</html>
